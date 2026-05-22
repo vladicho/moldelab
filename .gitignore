@@ -1,0 +1,13 @@
+# Sistema operacional
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+
+# Dependencias futuras
+node_modules/
+
+# Builds futuros
+dist/
+build/

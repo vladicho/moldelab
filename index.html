@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MoldeLab - Nesting Vetorial</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">M</span>
+          <div>
+            <h1>MoldeLab</h1>
+            <p>Editor vetorial de encaixe</p>
+          </div>
+        </div>
+
+        <section class="panel">
+          <h2>Projeto</h2>
+          <label>
+            Importar vetor
+            <input id="vectorInput" type="file" accept=".svg,.dxf,.ads,.plt" />
+          </label>
+          <label>
+            Largura do tecido
+            <input id="fabricWidth" type="number" min="80" max="240" step="5" value="150" />
+          </label>
+          <label>
+            Margem entre pecas
+            <input id="spacing" type="number" min="0" max="10" step="0.5" value="2" />
+          </label>
+          <button id="autoNest" class="primary">Encaixe automatico</button>
+          <button id="exportSvg">Exportar SVG</button>
+          <div id="importStatus" class="status-line">SVG, DXF e PLT simples importaveis. ADS precisa de amostras.</div>
+        </section>
+
+        <section class="panel">
+          <h2>Ferramentas</h2>
+          <div class="mode-row">
+            <button id="modeMove" class="active" title="Mover pecas">Mover</button>
+            <button id="modePoints" title="Editar pontos">Pontos</button>
+            <button id="modePan" title="Mover tela">Pan</button>
+          </div>
+          <div class="mode-row">
+            <button id="modeCalibrate" title="Calibrar imagem">Calibrar</button>
+            <button id="modeTrace" title="Contornar molde">Digitalizar</button>
+            <button id="finishTrace" title="Criar peca do contorno">Fechar</button>
+          </div>
+          <div class="tool-row">
+            <button id="zoomOut" title="Diminuir zoom">-</button>
+            <button id="resetView" title="Centralizar">100%</button>
+            <button id="zoomIn" title="Aumentar zoom">+</button>
+          </div>
+          <button id="addPiece">Nova peca</button>
+        </section>
+
+        <section class="panel">
+          <h2>Digitalizacao</h2>
+          <label>
+            Foto ou scan do molde
+            <input id="imageInput" type="file" accept="image/*" />
+          </label>
+          <label>
+            Medida de referencia (cm)
+            <input id="calibrationLength" type="number" min="1" max="200" step="0.5" value="10" />
+          </label>
+          <div id="digitizeStatus" class="status-line">Importe uma imagem para comecar.</div>
+        </section>
+
+        <section class="panel">
+          <h2>Peca selecionada</h2>
+          <div id="selectionName" class="selected-name">Nenhuma peca</div>
+          <div class="tool-row">
+            <button id="rotateLeft" title="Girar 15 graus para esquerda">-15</button>
+            <button id="rotateRight" title="Girar 15 graus para direita">+15</button>
+            <button id="mirrorPiece" title="Espelhar peca">Flip</button>
+          </div>
+          <label>
+            Rotacao
+            <input id="rotation" type="range" min="0" max="345" step="15" value="0" />
+          </label>
+        </section>
+
+        <section class="metrics">
+          <div>
+            <span id="usedLength">0 cm</span>
+            <p>Comprimento usado</p>
+          </div>
+          <div>
+            <span id="efficiency">0%</span>
+            <p>Aproveitamento</p>
+          </div>
+          <div>
+            <span id="collisions">0</span>
+            <p>Sobreposicoes</p>
+          </div>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <strong>Risco de corte</strong>
+            <span>Arraste as pecas, edite pontos e teste o encaixe no tecido.</span>
+          </div>
+          <div class="legend">
+            <span><i class="ok"></i> livre</span>
+            <span><i class="warn"></i> colisao</span>
+          </div>
+        </header>
+        <div class="canvas-wrap">
+          <canvas id="canvas" width="1280" height="760"></canvas>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
