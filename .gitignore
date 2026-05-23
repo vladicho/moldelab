@@ -11,3 +11,6 @@ node_modules/
 # Builds futuros
 dist/
 build/
+
+# Artefatos locais de analise
+samples/

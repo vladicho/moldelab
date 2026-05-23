@@ -105,6 +105,7 @@ label {
 }
 
 input[type="number"],
+input[type="text"],
 input[type="file"],
 select {
   height: 38px;

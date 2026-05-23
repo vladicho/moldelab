@@ -2,12 +2,15 @@ const canvas = document.querySelector("#canvas");
 const ctx = canvas.getContext("2d");
 
 const ui = {
+  projectName: document.querySelector("#projectName"),
+  projectInput: document.querySelector("#projectInput"),
   fabricWidth: document.querySelector("#fabricWidth"),
   fabricType: document.querySelector("#fabricType"),
   spacing: document.querySelector("#spacing"),
   vectorInput: document.querySelector("#vectorInput"),
   importStatus: document.querySelector("#importStatus"),
   autoNest: document.querySelector("#autoNest"),
+  saveProject: document.querySelector("#saveProject"),
   exportSvg: document.querySelector("#exportSvg"),
   modeMove: document.querySelector("#modeMove"),
   modePoints: document.querySelector("#modePoints"),
@@ -623,6 +626,103 @@ function exportSvg() {
   URL.revokeObjectURL(url);
 }
 
+function downloadFile(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function projectSnapshot() {
+  return {
+    version: 1,
+    app: "MoldeLab",
+    projectName: ui.projectName.value || "MoldeLab Projeto",
+    fabric: {
+      type: ui.fabricType.value,
+      width: Number(ui.fabricWidth.value),
+      spacing: Number(ui.spacing.value),
+      height: fabricHeight,
+    },
+    counters: {
+      newPieceCount,
+      digitizedCount,
+      importedCount,
+    },
+    pieces: pieces.map((piece) => ({
+      id: piece.id,
+      name: piece.name,
+      x: piece.x,
+      y: piece.y,
+      rotation: piece.rotation,
+      grainAngle: piece.grainAngle || 0,
+      mirrored: Boolean(piece.mirrored),
+      color: piece.color,
+      points: piece.points.map(([x, y]) => [x, y]),
+    })),
+  };
+}
+
+function saveProject() {
+  const snapshot = projectSnapshot();
+  const safeName = snapshot.projectName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "moldelab-projeto";
+  downloadFile(JSON.stringify(snapshot, null, 2), `${safeName}.moldelab.json`, "application/json");
+}
+
+function openProject(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(String(reader.result));
+      if (data.app !== "MoldeLab" || !Array.isArray(data.pieces)) {
+        updateImportStatus("Arquivo de projeto invalido.");
+        return;
+      }
+
+      ui.projectName.value = data.projectName || "MoldeLab Projeto";
+      ui.fabricType.value = data.fabric?.type || "flat";
+      ui.fabricWidth.value = data.fabric?.width || 150;
+      ui.spacing.value = data.fabric?.spacing || 2;
+
+      pieces.splice(
+        0,
+        pieces.length,
+        ...data.pieces.map((piece, index) => ({
+          id: piece.id || `loaded-${index + 1}`,
+          name: piece.name || `Peca ${index + 1}`,
+          x: Number(piece.x) || 0,
+          y: Number(piece.y) || 0,
+          rotation: Number(piece.rotation) || 0,
+          grainAngle: Number(piece.grainAngle) || 0,
+          mirrored: Boolean(piece.mirrored),
+          color: piece.color || "#475569",
+          points: Array.isArray(piece.points) ? piece.points.map(([x, y]) => [Number(x) || 0, Number(y) || 0]) : [],
+        })).filter((piece) => piece.points.length >= 3),
+      );
+
+      newPieceCount = data.counters?.newPieceCount || 1;
+      digitizedCount = data.counters?.digitizedCount || 1;
+      importedCount = data.counters?.importedCount || 1;
+      selectedId = pieces[0]?.id || null;
+      contourPoints = [];
+      calibrationPoints = [];
+      mode = "move";
+      updateImportStatus(`Projeto aberto: ${ui.projectName.value}`);
+      draw();
+    } catch (error) {
+      updateImportStatus("Nao foi possivel abrir o projeto.");
+    }
+  };
+  reader.readAsText(file);
+}
+
 function setZoom(nextZoom, anchor = [canvas.width / 2, canvas.height / 2]) {
   const before = screenToWorld(anchor[0], anchor[1]);
   view.zoom = Math.min(2.5, Math.max(0.55, nextZoom));
@@ -1165,10 +1265,12 @@ ui.fabricWidth.addEventListener("input", draw);
 ui.fabricType.addEventListener("change", draw);
 ui.spacing.addEventListener("input", draw);
 ui.autoNest.addEventListener("click", autoNest);
+ui.saveProject.addEventListener("click", saveProject);
 ui.exportSvg.addEventListener("click", exportSvg);
 ui.addPiece.addEventListener("click", addPiece);
 ui.finishTrace.addEventListener("click", finishTrace);
 ui.imageInput.addEventListener("change", (event) => importImage(event.target.files[0]));
 ui.vectorInput.addEventListener("change", (event) => importVectorFile(event.target.files[0]));
+ui.projectInput.addEventListener("change", (event) => openProject(event.target.files[0]));
 
 draw();

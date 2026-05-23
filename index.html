@@ -20,6 +20,14 @@
         <section class="panel">
           <h2>Projeto</h2>
           <label>
+            Nome do projeto
+            <input id="projectName" type="text" value="MoldeLab Projeto" />
+          </label>
+          <label>
+            Abrir projeto
+            <input id="projectInput" type="file" accept=".moldelab.json,application/json" />
+          </label>
+          <label>
             Importar vetor
             <input id="vectorInput" type="file" accept=".svg,.dxf,.ads,.plt" />
           </label>
@@ -39,6 +47,7 @@
             <input id="spacing" type="number" min="0" max="10" step="0.5" value="2" />
           </label>
           <button id="autoNest" class="primary">Encaixe automatico</button>
+          <button id="saveProject">Salvar projeto</button>
           <button id="exportSvg">Exportar SVG</button>
           <div id="importStatus" class="status-line">SVG, DXF e PLT simples importaveis. ADS precisa de amostras.</div>
         </section>
