@@ -177,6 +177,10 @@ button.primary:hover {
   gap: 8px;
 }
 
+.tool-row.two-actions {
+  grid-template-columns: repeat(2, 1fr);
+}
+
 .mode-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

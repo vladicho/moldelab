@@ -15,7 +15,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Editor 2D em canvas
 - Criacao de moldes do zero por pontos
 - Pecas vetoriais arrastaveis
-- Renomear e duplicar pecas para grade manual
+- Renomear, duplicar e apagar pecas para grade manual
 - Edicao de pontos
 - Zoom e pan
 - Regua em centimetros

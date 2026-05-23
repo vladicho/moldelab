@@ -32,6 +32,7 @@ const ui = {
   mirrorPiece: document.querySelector("#mirrorPiece"),
   pieceName: document.querySelector("#pieceName"),
   duplicatePiece: document.querySelector("#duplicatePiece"),
+  deletePiece: document.querySelector("#deletePiece"),
   rotation: document.querySelector("#rotation"),
   grainAngle: document.querySelector("#grainAngle"),
   selectionName: document.querySelector("#selectionName"),
@@ -870,6 +871,19 @@ function renameSelectedPiece() {
   draw();
 }
 
+function deleteSelectedPiece() {
+  const piece = selectedPiece();
+  if (!piece) return;
+  const confirmed = window.confirm(`Apagar a peca "${piece.name}"?`);
+  if (!confirmed) return;
+  const index = pieces.findIndex((item) => item.id === piece.id);
+  if (index === -1) return;
+  pieces.splice(index, 1);
+  selectedId = pieces[Math.max(0, index - 1)]?.id || pieces[0]?.id || null;
+  updateImportStatus(`Peca apagada: ${piece.name}`);
+  draw();
+}
+
 function normalizeImportedPoints(points) {
   const clean = points.filter((point) => Number.isFinite(point[0]) && Number.isFinite(point[1]));
   if (clean.length < 3) return null;
@@ -1363,6 +1377,7 @@ ui.mirrorPiece.addEventListener("click", () => {
 });
 
 ui.duplicatePiece.addEventListener("click", duplicateSelectedPiece);
+ui.deletePiece.addEventListener("click", deleteSelectedPiece);
 ui.pieceName.addEventListener("change", renameSelectedPiece);
 
 ui.rotation.addEventListener("input", () => {
