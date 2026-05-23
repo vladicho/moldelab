@@ -19,7 +19,6 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Zoom e pan
 - Regua em centimetros
 - Espelhamento e rotacao de pecas
-- Modo de corte por peca: normal, espelhada ou cortar na dobra
 - Encaixe automatico simples
 - Deteccao de sobreposicao
 - Digitalizacao por imagem com calibracao de escala

@@ -25,7 +25,6 @@ const ui = {
   rotateLeft: document.querySelector("#rotateLeft"),
   rotateRight: document.querySelector("#rotateRight"),
   mirrorPiece: document.querySelector("#mirrorPiece"),
-  cutMode: document.querySelector("#cutMode"),
   rotation: document.querySelector("#rotation"),
   selectionName: document.querySelector("#selectionName"),
   usedLength: document.querySelector("#usedLength"),
@@ -57,7 +56,6 @@ const pieces = [
     y: 18,
     rotation: 0,
     mirrored: false,
-    cutMode: "normal",
     color: "#0f766e",
     points: [
       [0, 10],
@@ -76,7 +74,6 @@ const pieces = [
     y: 20,
     rotation: 0,
     mirrored: false,
-    cutMode: "normal",
     color: "#2563eb",
     points: [
       [0, 8],
@@ -95,7 +92,6 @@ const pieces = [
     y: 28,
     rotation: 0,
     mirrored: false,
-    cutMode: "normal",
     color: "#9333ea",
     points: [
       [0, 18],
@@ -112,7 +108,6 @@ const pieces = [
     y: 110,
     rotation: 0,
     mirrored: false,
-    cutMode: "normal",
     color: "#ca8a04",
     points: [
       [0, 0],
@@ -128,7 +123,6 @@ const pieces = [
     y: 118,
     rotation: 0,
     mirrored: false,
-    cutMode: "normal",
     color: "#dc2626",
     points: [
       [0, 0],
@@ -153,7 +147,7 @@ function transformedPoints(piece) {
   const angle = (piece.rotation * Math.PI) / 180;
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
-  const flip = piece.mirrored || piece.cutMode === "mirror" ? -1 : 1;
+  const flip = piece.mirrored ? -1 : 1;
 
   return piece.points.map(([px, py]) => {
     const localX = (px - cx) * flip;
@@ -169,7 +163,7 @@ function inverseTransformedPoint(piece, point) {
   const angle = (piece.rotation * Math.PI) / 180;
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
-  const flip = piece.mirrored || piece.cutMode === "mirror" ? -1 : 1;
+  const flip = piece.mirrored ? -1 : 1;
   const dx = point[0] - piece.x - cx;
   const dy = point[1] - piece.y - cy;
   const localX = dx * cos + dy * sin;
@@ -360,30 +354,6 @@ function drawVertices(piece) {
   });
 }
 
-function drawFoldMark(piece, points) {
-  if (piece.cutMode !== "fold") return;
-  const box = bounds(points);
-  const x = box.minX;
-  const start = worldToScreen([x, box.minY]);
-  const end = worldToScreen([x, box.maxY]);
-  ctx.save();
-  ctx.setLineDash([10, 7]);
-  ctx.strokeStyle = "#111827";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(start[0], start[1]);
-  ctx.lineTo(end[0], end[1]);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.translate(start[0] - 12, (start[1] + end[1]) / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.fillStyle = "#111827";
-  ctx.font = "700 12px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText("DOBRA", 0, 0);
-  ctx.restore();
-}
-
 function drawPiece(piece, hasCollision) {
   const points = transformedPoints(piece);
   const canvasPoints = points.map(worldToScreen);
@@ -405,7 +375,6 @@ function drawPiece(piece, hasCollision) {
   ctx.font = "700 13px Arial";
   ctx.textAlign = "left";
   ctx.fillText(piece.name, label[0], label[1]);
-  drawFoldMark(piece, points);
   drawVertices(piece);
 }
 
@@ -424,7 +393,6 @@ function updateMetrics(collisions) {
   const piece = selectedPiece();
   ui.selectionName.textContent = piece ? piece.name : "Nenhuma peca";
   ui.rotation.value = piece ? piece.rotation : 0;
-  ui.cutMode.value = piece?.cutMode || (piece?.mirrored ? "mirror" : "normal");
 }
 
 function updateModeButtons() {
@@ -584,7 +552,6 @@ function addPiece() {
     y: 18 + newPieceCount * 6,
     rotation: 0,
     mirrored: false,
-    cutMode: "normal",
     color: "#0891b2",
     points: [
       [0, 0],
@@ -679,7 +646,6 @@ function createImportedPiece(points, name) {
     y: normalized.y,
     rotation: 0,
     mirrored: false,
-    cutMode: "normal",
     color: "#475569",
     points: normalized.points,
   });
@@ -913,7 +879,6 @@ function finishTrace() {
     y: box.minY,
     rotation: 0,
     mirrored: false,
-    cutMode: "normal",
     color: "#0891b2",
     points,
   });
@@ -1088,15 +1053,7 @@ ui.rotateRight.addEventListener("click", () => {
 
 ui.mirrorPiece.addEventListener("click", () => {
   const piece = selectedPiece();
-  piece.cutMode = piece.cutMode === "mirror" ? "normal" : "mirror";
-  piece.mirrored = false;
-  draw();
-});
-
-ui.cutMode.addEventListener("change", () => {
-  const piece = selectedPiece();
-  piece.cutMode = ui.cutMode.value;
-  piece.mirrored = false;
+  piece.mirrored = !piece.mirrored;
   draw();
 });
 
