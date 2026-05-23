@@ -25,7 +25,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -104,7 +105,8 @@ label {
 }
 
 input[type="number"],
-input[type="file"] {
+input[type="file"],
+select {
   height: 38px;
   border: 1px solid var(--line);
   border-radius: 6px;

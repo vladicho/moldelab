@@ -76,8 +76,16 @@
           <div class="tool-row">
             <button id="rotateLeft" title="Girar 15 graus para esquerda">-15</button>
             <button id="rotateRight" title="Girar 15 graus para direita">+15</button>
-            <button id="mirrorPiece" title="Espelhar peca">Flip</button>
+            <button id="mirrorPiece" title="Alternar espelhamento rapido">Flip</button>
           </div>
+          <label>
+            Modo de corte
+            <select id="cutMode">
+              <option value="normal">Normal</option>
+              <option value="mirror">Espelhada</option>
+              <option value="fold">Cortar na dobra</option>
+            </select>
+          </label>
           <label>
             Rotacao
             <input id="rotation" type="range" min="0" max="345" step="15" value="0" />
