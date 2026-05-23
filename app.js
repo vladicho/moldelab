@@ -30,6 +30,8 @@ const ui = {
   rotateLeft: document.querySelector("#rotateLeft"),
   rotateRight: document.querySelector("#rotateRight"),
   mirrorPiece: document.querySelector("#mirrorPiece"),
+  pieceName: document.querySelector("#pieceName"),
+  duplicatePiece: document.querySelector("#duplicatePiece"),
   rotation: document.querySelector("#rotation"),
   grainAngle: document.querySelector("#grainAngle"),
   selectionName: document.querySelector("#selectionName"),
@@ -471,6 +473,7 @@ function updateMetrics(collisions) {
 
   const piece = selectedPiece();
   ui.selectionName.textContent = piece ? piece.name : "Nenhuma peca";
+  ui.pieceName.value = piece ? piece.name : "";
   ui.rotation.value = piece ? piece.rotation : 0;
   ui.grainAngle.value = String(piece?.grainAngle ?? 0);
 }
@@ -836,6 +839,34 @@ function addPiece() {
   newPieceCount += 1;
   selectedId = id;
   mode = "points";
+  draw();
+}
+
+function duplicateSelectedPiece() {
+  const source = selectedPiece();
+  if (!source) return;
+  const id = `copy-${Date.now()}`;
+  const copy = {
+    ...source,
+    id,
+    name: `${source.name} copia`,
+    x: source.x + 8,
+    y: source.y + 8,
+    points: source.points.map(([x, y]) => [x, y]),
+  };
+  pieces.push(copy);
+  selectedId = id;
+  mode = "points";
+  updateImportStatus(`Peca duplicada: ${copy.name}`);
+  draw();
+}
+
+function renameSelectedPiece() {
+  const piece = selectedPiece();
+  if (!piece) return;
+  const nextName = ui.pieceName.value.trim();
+  if (!nextName) return;
+  piece.name = nextName;
   draw();
 }
 
@@ -1330,6 +1361,9 @@ ui.mirrorPiece.addEventListener("click", () => {
   piece.mirrored = !piece.mirrored;
   draw();
 });
+
+ui.duplicatePiece.addEventListener("click", duplicateSelectedPiece);
+ui.pieceName.addEventListener("change", renameSelectedPiece);
 
 ui.rotation.addEventListener("input", () => {
   selectedPiece().rotation = Number(ui.rotation.value);

@@ -90,11 +90,16 @@
         <section class="panel">
           <h2>Peca selecionada</h2>
           <div id="selectionName" class="selected-name">Nenhuma peca</div>
+          <label>
+            Nome da peca
+            <input id="pieceName" type="text" value="" />
+          </label>
           <div class="tool-row">
             <button id="rotateLeft" title="Girar 15 graus para esquerda">-15</button>
             <button id="rotateRight" title="Girar 15 graus para direita">+15</button>
             <button id="mirrorPiece" title="Espelhar peca">Flip</button>
           </div>
+          <button id="duplicatePiece">Duplicar peca</button>
           <label>
             Rotacao
             <input id="rotation" type="range" min="0" max="345" step="15" value="0" />
