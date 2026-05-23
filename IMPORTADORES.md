@@ -9,6 +9,7 @@ regras internas e automacoes especificas de outros sistemas podem ser ignorados.
 Importar:
 
 - `.ads` Audaces 7, quando houver amostras suficientes para mapear geometria
+- `.amk` Audaces Encaixe 7, para recuperar posicionamento das pecas no risco
 - `.dxf` para interoperabilidade CAD
 - `.svg` para vetor web
 - `.plt` para plotter/risco
@@ -37,6 +38,7 @@ No prototipo web atual:
 - DXF importa `LWPOLYLINE`, `POLYLINE`/`VERTEX` e `LINE` simples.
 - PLT importa caminhos HPGL basicos com `PU`, `PD` e `PA`.
 - ADS fica como parser experimental dependente de amostras reais do Audaces 7.
+- AMK fica como parser experimental para encaixes/markers do Audaces.
 
 ## Estrutura Interna
 
@@ -74,3 +76,31 @@ Editor MoldeLab
 ↓
 Exportacao DXF/SVG/PDF
 ```
+
+## Estrategia para AMK
+
+Arquivos `.amk` do Audaces Encaixe 7 parecem guardar o risco/marker. A amostra
+`SHORT SURF FEM.amk` comeca com a assinatura `AUDENC32 7.0`, referencia o
+arquivo `.ads` original e contem grade de tamanhos, nomes de pecas e muitos
+valores numericos que parecem coordenadas e posicionamentos.
+
+Objetivo inicial do parser `.amk`:
+
+```text
+Arquivo .amk
+↓
+Cabecalho AUDENC32 7.0
+↓
+Referencia ao .ads
+↓
+Largura/comprimento do encaixe
+↓
+Lista de pecas posicionadas
+↓
+Coordenadas, rotacao e espelhamento
+↓
+Renderizacao do risco no MoldeLab
+```
+
+Esse parser deve trabalhar junto com o `.ads`: o `.ads` fornece a geometria da
+peca, e o `.amk` fornece onde cada peca foi colocada no tecido.
