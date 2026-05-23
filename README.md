@@ -13,6 +13,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 ## Recursos atuais
 
 - Editor 2D em canvas
+- Criacao de moldes do zero por pontos
 - Pecas vetoriais arrastaveis
 - Edicao de pontos
 - Zoom e pan

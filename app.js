@@ -10,6 +10,7 @@ const ui = {
   exportSvg: document.querySelector("#exportSvg"),
   modeMove: document.querySelector("#modeMove"),
   modePoints: document.querySelector("#modePoints"),
+  modeDraw: document.querySelector("#modeDraw"),
   modePan: document.querySelector("#modePan"),
   modeCalibrate: document.querySelector("#modeCalibrate"),
   modeTrace: document.querySelector("#modeTrace"),
@@ -45,7 +46,7 @@ let importedCount = 1;
 let backgroundImage = null;
 let background = null;
 let calibrationPoints = [];
-let tracePoints = [];
+let contourPoints = [];
 
 const pieces = [
   {
@@ -397,6 +398,7 @@ function updateMetrics(collisions) {
 function updateModeButtons() {
   ui.modeMove.classList.toggle("active", mode === "move");
   ui.modePoints.classList.toggle("active", mode === "points");
+  ui.modeDraw.classList.toggle("active", mode === "draw");
   ui.modePan.classList.toggle("active", mode === "pan");
   ui.modeCalibrate.classList.toggle("active", mode === "calibrate");
   ui.modeTrace.classList.toggle("active", mode === "trace");
@@ -446,18 +448,25 @@ function drawDigitizeGuides() {
     }
   }
 
-  if (!tracePoints.length) return;
+  if (!contourPoints.length) return;
   ctx.strokeStyle = "#0891b2";
   ctx.fillStyle = "#0891b2";
   ctx.lineWidth = 2;
   ctx.beginPath();
-  tracePoints.forEach((point, index) => {
+  contourPoints.forEach((point, index) => {
     const [x, y] = worldToScreen(point);
     if (index === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   });
   ctx.stroke();
-  tracePoints.forEach((point) => {
+  if (mode === "draw" || mode === "trace") {
+    const [x, y] = worldToScreen(contourPoints[0]);
+    ctx.beginPath();
+    ctx.arc(x, y, 9, 0, Math.PI * 2);
+    ctx.strokeStyle = "#0f172a";
+    ctx.stroke();
+  }
+  contourPoints.forEach((point) => {
     const [x, y] = worldToScreen(point);
     ctx.beginPath();
     ctx.arc(x, y, 4, 0, Math.PI * 2);
@@ -828,7 +837,7 @@ function importImage(file) {
       heightCm: widthCm * (image.height / image.width),
     };
     calibrationPoints = [];
-    tracePoints = [];
+    contourPoints = [];
     mode = "calibrate";
     updateDigitizeStatus("Clique dois pontos na imagem e informe a medida real.");
     draw();
@@ -855,16 +864,17 @@ function calibrateImage() {
 }
 
 function finishTrace() {
-  if (tracePoints.length < 3) {
+  if (contourPoints.length < 3) {
     updateDigitizeStatus("Marque pelo menos 3 pontos para criar uma peca.");
     return;
   }
-  const box = bounds(tracePoints);
-  const points = tracePoints.map(([x, y]) => [x - box.minX, y - box.minY]);
-  const id = `digitized-${digitizedCount}`;
+  const box = bounds(contourPoints);
+  const points = contourPoints.map(([x, y]) => [x - box.minX, y - box.minY]);
+  const isDrawn = mode === "draw";
+  const id = `${isDrawn ? "drawn" : "digitized"}-${digitizedCount}`;
   pieces.push({
     id,
-    name: `Digitalizada ${digitizedCount}`,
+    name: `${isDrawn ? "Desenhada" : "Digitalizada"} ${digitizedCount}`,
     x: box.minX,
     y: box.minY,
     rotation: 0,
@@ -874,9 +884,9 @@ function finishTrace() {
   });
   digitizedCount += 1;
   selectedId = id;
-  tracePoints = [];
+  contourPoints = [];
   mode = "points";
-  updateDigitizeStatus("Peca digitalizada criada. Ajuste os pontos se precisar.");
+  updateDigitizeStatus("Peca criada. Ajuste os pontos se precisar.");
   draw();
 }
 
@@ -909,8 +919,15 @@ canvas.addEventListener("pointerdown", (event) => {
       updateDigitizeStatus("Importe uma imagem antes de digitalizar.");
       return;
     }
-    tracePoints.push(point);
-    updateDigitizeStatus(`${tracePoints.length} pontos marcados. Use Fechar quando completar o contorno.`);
+    contourPoints.push(point);
+    updateDigitizeStatus(`${contourPoints.length} pontos marcados. Use Fechar contorno quando completar.`);
+    draw();
+    return;
+  }
+
+  if (mode === "draw") {
+    contourPoints.push(point);
+    updateDigitizeStatus(`${contourPoints.length} pontos desenhados. Use Fechar contorno para criar a peca.`);
     draw();
     return;
   }
@@ -987,6 +1004,13 @@ ui.modePoints.addEventListener("click", () => {
   draw();
 });
 
+ui.modeDraw.addEventListener("click", () => {
+  mode = "draw";
+  contourPoints = [];
+  updateDigitizeStatus("Modo desenho: clique no canvas para criar pontos do molde.");
+  draw();
+});
+
 ui.modePan.addEventListener("click", () => {
   mode = "pan";
   draw();
@@ -1001,6 +1025,7 @@ ui.modeCalibrate.addEventListener("click", () => {
 
 ui.modeTrace.addEventListener("click", () => {
   mode = "trace";
+  contourPoints = [];
   updateDigitizeStatus(background ? "Clique no contorno do molde." : "Importe uma imagem antes de digitalizar.");
   draw();
 });
