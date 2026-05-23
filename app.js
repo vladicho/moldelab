@@ -33,6 +33,7 @@ const ui = {
   pieceName: document.querySelector("#pieceName"),
   duplicatePiece: document.querySelector("#duplicatePiece"),
   deletePiece: document.querySelector("#deletePiece"),
+  deletePoint: document.querySelector("#deletePoint"),
   rotation: document.querySelector("#rotation"),
   grainAngle: document.querySelector("#grainAngle"),
   selectionName: document.querySelector("#selectionName"),
@@ -48,6 +49,7 @@ const view = { zoom: 1, panX: 0, panY: 0 };
 
 let mode = "move";
 let selectedId = "front";
+let selectedPointIndex = null;
 let dragState = null;
 let newPieceCount = 1;
 let digitizedCount = 1;
@@ -393,8 +395,8 @@ function drawVertices(piece) {
   transformedPoints(piece).forEach((point, index) => {
     const [x, y] = worldToScreen(point);
     ctx.beginPath();
-    ctx.arc(x, y, 6, 0, Math.PI * 2);
-    ctx.fillStyle = index === 0 ? "#111827" : "#ffffff";
+    ctx.arc(x, y, selectedPointIndex === index ? 8 : 6, 0, Math.PI * 2);
+    ctx.fillStyle = selectedPointIndex === index ? "#facc15" : index === 0 ? "#111827" : "#ffffff";
     ctx.strokeStyle = piece.color;
     ctx.lineWidth = 2;
     ctx.fill();
@@ -884,6 +886,22 @@ function deleteSelectedPiece() {
   draw();
 }
 
+function deleteSelectedPoint() {
+  const piece = selectedPiece();
+  if (!piece || selectedPointIndex === null) {
+    updateImportStatus("Selecione um ponto no modo Pontos.");
+    return;
+  }
+  if (piece.points.length <= 3) {
+    updateImportStatus("A peca precisa manter pelo menos 3 pontos.");
+    return;
+  }
+  piece.points.splice(selectedPointIndex, 1);
+  selectedPointIndex = null;
+  updateImportStatus(`Ponto apagado de ${piece.name}.`);
+  draw();
+}
+
 function normalizeImportedPoints(points) {
   const clean = points.filter((point) => Number.isFinite(point[0]) && Number.isFinite(point[1]));
   if (clean.length < 3) return null;
@@ -1254,8 +1272,10 @@ canvas.addEventListener("pointerdown", (event) => {
   if (mode === "points") {
     const vertex = vertexAt(screen);
     if (vertex) {
+      selectedPointIndex = vertex.index;
       dragState = { type: "vertex", pieceId: vertex.piece.id, pointIndex: vertex.index };
       canvas.setPointerCapture(event.pointerId);
+      draw();
       return;
     }
   }
@@ -1263,6 +1283,7 @@ canvas.addEventListener("pointerdown", (event) => {
   const piece = pieceAt(point);
   if (!piece) return;
   selectedId = piece.id;
+  selectedPointIndex = null;
   if (mode === "move") {
     dragState = {
       type: "piece",
@@ -1315,6 +1336,7 @@ canvas.addEventListener("wheel", (event) => {
 
 ui.modeMove.addEventListener("click", () => {
   mode = "move";
+  selectedPointIndex = null;
   draw();
 });
 
@@ -1325,6 +1347,7 @@ ui.modePoints.addEventListener("click", () => {
 
 ui.modeDraw.addEventListener("click", () => {
   mode = "draw";
+  selectedPointIndex = null;
   contourPoints = [];
   updateDigitizeStatus("Modo desenho: clique no canvas para criar pontos do molde.");
   draw();
@@ -1332,6 +1355,7 @@ ui.modeDraw.addEventListener("click", () => {
 
 ui.modePan.addEventListener("click", () => {
   mode = "pan";
+  selectedPointIndex = null;
   draw();
 });
 
@@ -1344,6 +1368,7 @@ ui.modeCalibrate.addEventListener("click", () => {
 
 ui.modeTrace.addEventListener("click", () => {
   mode = "trace";
+  selectedPointIndex = null;
   contourPoints = [];
   updateDigitizeStatus(background ? "Clique no contorno do molde." : "Importe uma imagem antes de digitalizar.");
   draw();
@@ -1378,6 +1403,7 @@ ui.mirrorPiece.addEventListener("click", () => {
 
 ui.duplicatePiece.addEventListener("click", duplicateSelectedPiece);
 ui.deletePiece.addEventListener("click", deleteSelectedPiece);
+ui.deletePoint.addEventListener("click", deleteSelectedPoint);
 ui.pieceName.addEventListener("change", renameSelectedPiece);
 
 ui.rotation.addEventListener("input", () => {

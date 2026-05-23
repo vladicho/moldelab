@@ -16,7 +16,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Criacao de moldes do zero por pontos
 - Pecas vetoriais arrastaveis
 - Renomear, duplicar e apagar pecas para grade manual
-- Edicao de pontos
+- Edicao e remocao de pontos
 - Zoom e pan
 - Regua em centimetros
 - Tipo de tecido: plano ou tubular
