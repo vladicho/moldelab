@@ -3,6 +3,9 @@
 MoldeLab e um prototipo web para modelagem de moldes vetoriais de vestuario,
 digitalizacao, nesting e importacao/exportacao de arquivos de risco.
 
+O produto web deve funcionar como SaaS pago, com usuario, senha, planos de
+assinatura e pagamento por cartao de credito.
+
 O projeto tambem deve evoluir para um aplicativo nativo de Windows, mantendo a
 mesma base visual do editor web e adicionando recursos offline, acesso a
 arquivos locais, impressoras, plotters e motores nativos de geometria.
@@ -53,8 +56,16 @@ index.html        Interface principal
 styles.css        Estilos
 app.js            Editor, nesting, digitalizacao e importadores
 IMPORTADORES.md   Arquitetura dos importadores
+SAAS_BILLING.md   Plano de login, assinaturas e pagamento
 WINDOWS_APP.md    Plano para aplicativo nativo Windows
 ```
+
+## Roadmap SaaS
+
+A versao web deve ter autenticacao, controle de acesso por assinatura e
+pagamento por cartao. A implementacao recomendada e usar um provedor de
+pagamentos como Stripe, Mercado Pago ou Pagar.me, com backend proprio para
+validar webhooks e liberar recursos pagos.
 
 ## Roadmap Windows
 
