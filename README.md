@@ -19,7 +19,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Zoom e pan
 - Regua em centimetros
 - Tipo de tecido: plano ou tubular
-- Seta de fio nas pecas
+- Seta de fio nas pecas com angulos 0, 45, 90, 135, 180 e 360 graus
 - Espelhamento e rotacao de pecas
 - Encaixe automatico simples
 - Deteccao de sobreposicao

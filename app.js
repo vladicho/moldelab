@@ -27,6 +27,7 @@ const ui = {
   rotateRight: document.querySelector("#rotateRight"),
   mirrorPiece: document.querySelector("#mirrorPiece"),
   rotation: document.querySelector("#rotation"),
+  grainAngle: document.querySelector("#grainAngle"),
   selectionName: document.querySelector("#selectionName"),
   usedLength: document.querySelector("#usedLength"),
   efficiency: document.querySelector("#efficiency"),
@@ -56,6 +57,7 @@ const pieces = [
     x: 16,
     y: 18,
     rotation: 0,
+    grainAngle: 0,
     mirrored: false,
     color: "#0f766e",
     points: [
@@ -74,6 +76,7 @@ const pieces = [
     x: 64,
     y: 20,
     rotation: 0,
+    grainAngle: 0,
     mirrored: false,
     color: "#2563eb",
     points: [
@@ -92,6 +95,7 @@ const pieces = [
     x: 112,
     y: 28,
     rotation: 0,
+    grainAngle: 0,
     mirrored: false,
     color: "#9333ea",
     points: [
@@ -108,6 +112,7 @@ const pieces = [
     x: 24,
     y: 110,
     rotation: 0,
+    grainAngle: 0,
     mirrored: false,
     color: "#ca8a04",
     points: [
@@ -123,6 +128,7 @@ const pieces = [
     x: 94,
     y: 118,
     rotation: 0,
+    grainAngle: 0,
     mirrored: false,
     color: "#dc2626",
     points: [
@@ -389,13 +395,16 @@ function drawVertices(piece) {
   });
 }
 
-function drawGrainline(points) {
+function drawGrainline(piece, points) {
   const box = bounds(points);
   const centerX = (box.minX + box.maxX) / 2;
-  const y1 = box.minY + (box.maxY - box.minY) * 0.25;
-  const y2 = box.minY + (box.maxY - box.minY) * 0.75;
-  const start = worldToScreen([centerX, y1]);
-  const end = worldToScreen([centerX, y2]);
+  const centerY = (box.minY + box.maxY) / 2;
+  const length = Math.max(12, Math.min(box.maxX - box.minX, box.maxY - box.minY) * 0.55);
+  const angle = (((piece.grainAngle || 0) % 360) * Math.PI) / 180;
+  const dx = Math.sin(angle) * length * 0.5;
+  const dy = Math.cos(angle) * length * 0.5;
+  const start = worldToScreen([centerX - dx, centerY - dy]);
+  const end = worldToScreen([centerX + dx, centerY + dy]);
 
   ctx.save();
   ctx.strokeStyle = "#1d4ed8";
@@ -415,7 +424,7 @@ function drawGrainline(points) {
 
   ctx.font = "700 11px Arial";
   ctx.textAlign = "center";
-  ctx.fillText("FIO", start[0], start[1] - 8);
+  ctx.fillText(`FIO ${piece.grainAngle || 0}`, start[0], start[1] - 8);
   ctx.restore();
 }
 
@@ -440,7 +449,7 @@ function drawPiece(piece, hasCollision) {
   ctx.font = "700 13px Arial";
   ctx.textAlign = "left";
   ctx.fillText(piece.name, label[0], label[1]);
-  drawGrainline(points);
+  drawGrainline(piece, points);
   drawVertices(piece);
 }
 
@@ -459,6 +468,7 @@ function updateMetrics(collisions) {
   const piece = selectedPiece();
   ui.selectionName.textContent = piece ? piece.name : "Nenhuma peca";
   ui.rotation.value = piece ? piece.rotation : 0;
+  ui.grainAngle.value = String(piece?.grainAngle ?? 0);
 }
 
 function updateModeButtons() {
@@ -563,7 +573,7 @@ function autoNest() {
   let tubularRightY = spacing;
 
   ordered.forEach((piece) => {
-    if (piece.rotation !== 180) piece.rotation = 0;
+    piece.rotation = Number(piece.grainAngle || 0) % 360;
     const box = bounds(transformedPoints({ ...piece, x: 0, y: 0 }));
     const width = box.maxX - box.minX;
     const height = box.maxY - box.minY;
@@ -630,6 +640,7 @@ function addPiece() {
     x: 18 + newPieceCount * 6,
     y: 18 + newPieceCount * 6,
     rotation: 0,
+    grainAngle: 0,
     mirrored: false,
     color: "#0891b2",
     points: [
@@ -724,6 +735,7 @@ function createImportedPiece(points, name) {
     x: normalized.x,
     y: normalized.y,
     rotation: 0,
+    grainAngle: 0,
     mirrored: false,
     color: "#475569",
     points: normalized.points,
@@ -957,6 +969,7 @@ function finishTrace() {
     x: box.minX,
     y: box.minY,
     rotation: 0,
+    grainAngle: 0,
     mirrored: false,
     color: "#0891b2",
     points,
@@ -1138,6 +1151,13 @@ ui.mirrorPiece.addEventListener("click", () => {
 
 ui.rotation.addEventListener("input", () => {
   selectedPiece().rotation = Number(ui.rotation.value);
+  draw();
+});
+
+ui.grainAngle.addEventListener("change", () => {
+  const piece = selectedPiece();
+  piece.grainAngle = Number(ui.grainAngle.value);
+  piece.rotation = piece.grainAngle % 360;
   draw();
 });
 
