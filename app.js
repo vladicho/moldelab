@@ -64,6 +64,7 @@ const ui = {
   statusPiece: document.querySelector("#statusPiece"),
   statusFabric: document.querySelector("#statusFabric"),
   statusZoom: document.querySelector("#statusZoom"),
+  statusCursor: document.querySelector("#statusCursor"),
   statusMessage: document.querySelector("#statusMessage"),
 };
 
@@ -810,6 +811,10 @@ function updateDigitizeStatus(message) {
 function updateImportStatus(message) {
   ui.importStatus.textContent = message;
   ui.statusMessage.textContent = message;
+}
+
+function updateCursorStatus(point) {
+  ui.statusCursor.textContent = point ? `${point[0].toFixed(1)}, ${point[1].toFixed(1)} cm` : "-";
 }
 
 function drawBackgroundImage() {
@@ -2163,9 +2168,10 @@ canvas.addEventListener("pointerdown", (event) => {
 });
 
 canvas.addEventListener("pointermove", (event) => {
-  if (!dragState) return;
   const screen = eventScreen(event);
   const point = screenToWorld(screen[0], screen[1]);
+  updateCursorStatus(point);
+  if (!dragState) return;
   const snappedPoint = snapPoint(point);
 
   if (dragState.type === "pan") {
@@ -2187,6 +2193,8 @@ canvas.addEventListener("pointermove", (event) => {
 
   draw();
 });
+
+canvas.addEventListener("pointerleave", () => updateCursorStatus(null));
 
 canvas.addEventListener("pointerup", (event) => {
   dragState = null;
