@@ -44,6 +44,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Margem de costura visual por peca
 - Desfazer e refazer alteracoes do projeto
 - Zoom e pan
+- Zoom manual ate 1000%
 - Regua em centimetros
 - Medicao de distancia em centimetros no canvas
 - Tipo de tecido: plano ou tubular

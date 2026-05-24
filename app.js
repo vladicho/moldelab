@@ -1883,7 +1883,7 @@ function openProject(file) {
 
 function setZoom(nextZoom, anchor = [canvas.width / 2, canvas.height / 2]) {
   const before = screenToWorld(anchor[0], anchor[1]);
-  view.zoom = Math.min(2.5, Math.max(0.55, nextZoom));
+  view.zoom = Math.min(10, Math.max(0.55, nextZoom));
   const after = worldToScreen(before);
   view.panX += anchor[0] - after[0];
   view.panY += anchor[1] - after[1];
@@ -1899,7 +1899,7 @@ function fitViewToPieces() {
   const padding = 70;
   const zoomX = (canvas.width - padding * 2) / (width * baseScale);
   const zoomY = (canvas.height - padding * 2) / (height * baseScale);
-  view.zoom = Math.min(2.5, Math.max(0.25, Math.min(zoomX, zoomY)));
+  view.zoom = Math.min(10, Math.max(0.25, Math.min(zoomX, zoomY)));
   view.panX = canvas.width / 2 - origin.x - ((box.minX + width / 2) * baseScale * view.zoom);
   view.panY = canvas.height / 2 - origin.y - ((box.minY + height / 2) * baseScale * view.zoom);
   updateImportStatus("Pecas ajustadas a tela.");
