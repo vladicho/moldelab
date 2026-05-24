@@ -650,6 +650,32 @@ function refreshIcons() {
   });
 }
 
+function closeMenus(exceptMenu) {
+  document.querySelectorAll(".menu-dropdown[open]").forEach((menu) => {
+    if (menu !== exceptMenu) {
+      menu.removeAttribute("open");
+    }
+  });
+}
+
+function setupMenuBehavior() {
+  document.querySelectorAll(".menu-dropdown").forEach((menu) => {
+    menu.addEventListener("toggle", () => {
+      if (menu.open) closeMenus(menu);
+    });
+  });
+
+  document.addEventListener("pointerdown", (event) => {
+    if (!event.target.closest(".menu-dropdown")) closeMenus();
+  });
+
+  document.querySelectorAll(".menu-dropdown button").forEach((button) => {
+    button.addEventListener("click", () => {
+      button.closest("details")?.removeAttribute("open");
+    });
+  });
+}
+
 function pieceMetaLabel(piece) {
   return [piece.model, piece.size].map((value) => String(value || "").trim()).filter(Boolean).join(" / ");
 }
@@ -2321,6 +2347,10 @@ ui.vectorInput.addEventListener("change", (event) => importVectorFile(event.targ
 ui.projectInput.addEventListener("change", (event) => openProject(event.target.files[0]));
 
 document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeMenus();
+    return;
+  }
   const isUndo = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && !event.shiftKey;
   const isRedo = (event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === "y" || (event.shiftKey && event.key.toLowerCase() === "z"));
   const didNudge = !event.ctrlKey && !event.metaKey && nudgeSelectedPiece(event);
@@ -2330,12 +2360,7 @@ document.addEventListener("keydown", (event) => {
   if (isRedo) redoAction();
 });
 
-document.querySelectorAll(".menu-dropdown button").forEach((button) => {
-  button.addEventListener("click", () => {
-    button.closest("details")?.removeAttribute("open");
-  });
-});
-
+setupMenuBehavior();
 window.addEventListener("load", refreshIcons);
 
 draw();
