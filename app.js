@@ -267,6 +267,19 @@ function polygonArea(points) {
   return Math.abs(area / 2);
 }
 
+function markerStats(pieceList = pieces) {
+  const allPoints = pieceList.flatMap(transformedPoints);
+  const box = allPoints.length ? bounds(allPoints) : { maxX: 0 };
+  const usedLength = Math.max(0, box.maxX);
+  const pieceArea = pieceList.reduce((total, piece) => total + polygonArea(transformedPoints(piece)), 0);
+  const fabricArea = Math.max(1, Number(ui.fabricWidth.value) * Math.max(usedLength, 1));
+  return {
+    usedLength,
+    pieceArea,
+    efficiency: Math.min(100, (pieceArea / fabricArea) * 100),
+  };
+}
+
 function polygonPerimeter(points) {
   let perimeter = 0;
   for (let index = 0; index < points.length; index += 1) {
@@ -471,6 +484,49 @@ function findBestPlacement(piece, placed, fabricWidth, spacing, options = {}) {
   });
 
   return best;
+}
+
+function applyPlacement(piece, placement, placed) {
+  piece.rotation = placement.rotation;
+  piece.x = placement.x;
+  piece.y = placement.y;
+  placed.push({ piece, points: placement.points, box: placement.box });
+}
+
+function runNestingPass(lockedPieces, foldPieces, regularPieces, fabricWidth, spacing) {
+  const placed = lockedPieces.map(placedPieceInfo);
+  const placements = new Map();
+  let foldStartX = spacing;
+
+  foldPieces.forEach((piece) => {
+    const info = placementInfo(piece, Number(piece.grainAngle || 0) % 360);
+    const topPlacement = findBestPlacement(piece, placed, fabricWidth, spacing, { startX: spacing, fixedY: spacing });
+    const bottomY = Math.max(spacing, fabricWidth - info.height - spacing);
+    const bottomPlacement = findBestPlacement(piece, placed, fabricWidth, spacing, { startX: spacing, fixedY: bottomY });
+    const placement =
+      bottomPlacement && (!topPlacement || bottomPlacement.score < topPlacement.score) ? bottomPlacement : topPlacement;
+
+    if (!placement) return;
+    applyPlacement(piece, placement, placed);
+    placements.set(piece.id, { x: piece.x, y: piece.y, rotation: piece.rotation });
+    foldStartX = Math.max(foldStartX, placement.box.maxX + spacing);
+  });
+
+  regularPieces.forEach((piece) => {
+    const placement = findBestPlacement(piece, placed, fabricWidth, spacing, { startX: foldPieces.length ? foldStartX : spacing });
+    if (!placement) return;
+    applyPlacement(piece, placement, placed);
+    placements.set(piece.id, { x: piece.x, y: piece.y, rotation: piece.rotation });
+  });
+
+  const candidatePieces = [...lockedPieces, ...foldPieces, ...regularPieces];
+  const stats = markerStats(candidatePieces);
+  return {
+    placements,
+    stats,
+    placedCount: placements.size,
+    score: stats.usedLength * 100000 - stats.efficiency * 100 + (foldPieces.length + regularPieces.length - placements.size) * 100000000,
+  };
 }
 
 function drawRulers(length, width) {
@@ -913,15 +969,10 @@ function renderPieceStats(piece) {
 }
 
 function updateMetrics(collisions) {
-  const allPoints = pieces.flatMap(transformedPoints);
-  const box = bounds(allPoints);
-  const usedLength = Math.max(0, box.maxX);
-  const pieceArea = pieces.reduce((total, piece) => total + polygonArea(transformedPoints(piece)), 0);
-  const fabricArea = Math.max(1, Number(ui.fabricWidth.value) * Math.max(usedLength, 1));
-  const efficiency = Math.min(100, (pieceArea / fabricArea) * 100);
+  const stats = markerStats();
 
-  ui.usedLength.textContent = `${usedLength.toFixed(1)} cm`;
-  ui.efficiency.textContent = `${efficiency.toFixed(1)}%`;
+  ui.usedLength.textContent = `${stats.usedLength.toFixed(1)} cm`;
+  ui.efficiency.textContent = `${stats.efficiency.toFixed(1)}%`;
   ui.collisions.textContent = String(collisions.pairs);
 
   const piece = selectedPiece();
@@ -1104,38 +1155,40 @@ function autoNest() {
   const fabricWidth = Number(ui.fabricWidth.value);
   const isTubular = ui.fabricType.value === "tubular";
   const ordered = [...pieces].sort((a, b) => polygonArea(transformedPoints(b)) - polygonArea(transformedPoints(a)));
+  const lockedPieces = pieces.filter((piece) => piece.locked);
   const unlocked = ordered.filter((piece) => !piece.locked);
   const foldPieces = isTubular ? unlocked.filter((piece) => piece.mirrored) : [];
   const regularPieces = unlocked.filter((piece) => !(isTubular && piece.mirrored));
-  const placed = pieces.filter((piece) => piece.locked).map(placedPieceInfo);
-  let foldStartX = spacing;
+  const regularOrders = [
+    regularPieces,
+    [...regularPieces].sort((a, b) => placementInfo(b).height - placementInfo(a).height),
+    [...regularPieces].sort((a, b) => placementInfo(b).width - placementInfo(a).width),
+    [...regularPieces].sort((a, b) => polygonPerimeter(transformedPoints(b)) - polygonPerimeter(transformedPoints(a))),
+    [...regularPieces].reverse(),
+  ];
+  let best = null;
 
-  foldPieces.forEach((piece) => {
-    const info = placementInfo(piece, Number(piece.grainAngle || 0) % 360);
-    const topPlacement = findBestPlacement(piece, placed, fabricWidth, spacing, { startX: spacing, fixedY: spacing });
-    const bottomY = Math.max(spacing, fabricWidth - info.height - spacing);
-    const bottomPlacement = findBestPlacement(piece, placed, fabricWidth, spacing, { startX: spacing, fixedY: bottomY });
-    const placement =
-      bottomPlacement && (!topPlacement || bottomPlacement.score < topPlacement.score) ? bottomPlacement : topPlacement;
-
-    if (!placement) return;
-    piece.rotation = placement.rotation;
-    piece.x = placement.x;
-    piece.y = placement.y;
-    placed.push({ piece, points: placement.points, box: placement.box });
-    foldStartX = Math.max(foldStartX, placement.box.maxX + spacing);
+  regularOrders.forEach((order) => {
+    const clonedLocked = lockedPieces.map((piece) => ({ ...piece, points: piece.points.map((point) => [...point]) }));
+    const clonedFold = foldPieces.map((piece) => ({ ...piece, points: piece.points.map((point) => [...point]) }));
+    const clonedRegular = order.map((piece) => ({ ...piece, points: piece.points.map((point) => [...point]) }));
+    const result = runNestingPass(clonedLocked, clonedFold, clonedRegular, fabricWidth, spacing);
+    if (!best || result.score < best.score) best = result;
   });
 
-  regularPieces.forEach((piece) => {
-    const placement = findBestPlacement(piece, placed, fabricWidth, spacing, { startX: foldPieces.length ? foldStartX : spacing });
-    if (!placement) return;
-    piece.rotation = placement.rotation;
-    piece.x = placement.x;
-    piece.y = placement.y;
-    placed.push({ piece, points: placement.points, box: placement.box });
-  });
-  updateImportStatus("Encaixe automatico otimizado: largura fixa, comprimento minimo possivel e aproveitamento melhorado.");
+  if (best) {
+    pieces.forEach((piece) => {
+      const placement = best.placements.get(piece.id);
+      if (!placement) return;
+      piece.rotation = placement.rotation;
+      piece.x = placement.x;
+      piece.y = placement.y;
+    });
+  }
+
   draw();
+  const stats = markerStats();
+  updateImportStatus(`Encaixe automatico: ${stats.efficiency.toFixed(1)}% de aproveitamento em ${stats.usedLength.toFixed(1)} cm.`);
 }
 
 function exportSvgMarkup() {
