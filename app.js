@@ -19,6 +19,7 @@ const ui = {
   modePan: document.querySelector("#modePan"),
   modeCalibrate: document.querySelector("#modeCalibrate"),
   modeTrace: document.querySelector("#modeTrace"),
+  modeMeasure: document.querySelector("#modeMeasure"),
   finishTrace: document.querySelector("#finishTrace"),
   zoomOut: document.querySelector("#zoomOut"),
   zoomIn: document.querySelector("#zoomIn"),
@@ -58,6 +59,7 @@ let backgroundImage = null;
 let background = null;
 let calibrationPoints = [];
 let contourPoints = [];
+let measurePoints = [];
 
 const pieces = [
   {
@@ -512,6 +514,7 @@ function updateModeButtons() {
   ui.modePan.classList.toggle("active", mode === "pan");
   ui.modeCalibrate.classList.toggle("active", mode === "calibrate");
   ui.modeTrace.classList.toggle("active", mode === "trace");
+  ui.modeMeasure.classList.toggle("active", mode === "measure");
   canvas.style.cursor = mode === "pan" ? "grab" : mode === "move" ? "move" : "crosshair";
 }
 
@@ -584,6 +587,51 @@ function drawDigitizeGuides() {
   });
 }
 
+function measureDistance() {
+  if (measurePoints.length !== 2) return 0;
+  return Math.hypot(measurePoints[1][0] - measurePoints[0][0], measurePoints[1][1] - measurePoints[0][1]);
+}
+
+function drawMeasureGuide() {
+  if (!measurePoints.length) return;
+  const screenPoints = measurePoints.map(worldToScreen);
+
+  ctx.save();
+  ctx.strokeStyle = "#be123c";
+  ctx.fillStyle = "#be123c";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([7, 5]);
+
+  if (screenPoints.length === 2) {
+    ctx.beginPath();
+    ctx.moveTo(screenPoints[0][0], screenPoints[0][1]);
+    ctx.lineTo(screenPoints[1][0], screenPoints[1][1]);
+    ctx.stroke();
+
+    const midX = (screenPoints[0][0] + screenPoints[1][0]) / 2;
+    const midY = (screenPoints[0][1] + screenPoints[1][1]) / 2;
+    const label = `${measureDistance().toFixed(2)} cm`;
+    ctx.setLineDash([]);
+    ctx.font = "700 13px Arial";
+    const labelWidth = ctx.measureText(label).width + 14;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#fff1f2";
+    ctx.strokeStyle = "#be123c";
+    ctx.fillRect(midX - labelWidth / 2, midY - 15, labelWidth, 24);
+    ctx.strokeRect(midX - labelWidth / 2, midY - 15, labelWidth, 24);
+    ctx.fillStyle = "#be123c";
+    ctx.fillText(label, midX, midY - 3);
+  }
+
+  screenPoints.forEach(([x, y]) => {
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawFabric();
@@ -591,6 +639,7 @@ function draw() {
   const collisions = collisionInfo();
   pieces.forEach((piece) => drawPiece(piece, collisions.ids.has(piece.id)));
   drawDigitizeGuides();
+  drawMeasureGuide();
   updateMetrics(collisions);
   updateModeButtons();
 }
@@ -825,6 +874,7 @@ function openProject(file) {
       selectedId = pieces[0]?.id || null;
       contourPoints = [];
       calibrationPoints = [];
+      measurePoints = [];
       mode = "move";
       updateImportStatus(`Projeto aberto: ${ui.projectName.value}`);
       draw();
@@ -1293,6 +1343,18 @@ canvas.addEventListener("pointerdown", (event) => {
     return;
   }
 
+  if (mode === "measure") {
+    measurePoints.push(point);
+    if (measurePoints.length > 2) measurePoints = [point];
+    if (measurePoints.length === 2) {
+      updateDigitizeStatus(`Medida: ${measureDistance().toFixed(2)} cm.`);
+    } else {
+      updateDigitizeStatus("Clique o segundo ponto para medir.");
+    }
+    draw();
+    return;
+  }
+
   if (mode === "points") {
     const vertex = vertexAt(screen);
     if (vertex) {
@@ -1390,6 +1452,14 @@ ui.modeDraw.addEventListener("click", () => {
 ui.modePan.addEventListener("click", () => {
   mode = "pan";
   selectedPointIndex = null;
+  draw();
+});
+
+ui.modeMeasure.addEventListener("click", () => {
+  mode = "measure";
+  selectedPointIndex = null;
+  measurePoints = [];
+  updateDigitizeStatus("Modo medir: clique dois pontos no canvas.");
   draw();
 });
 

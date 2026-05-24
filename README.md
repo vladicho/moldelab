@@ -19,6 +19,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Edicao, insercao e remocao de pontos
 - Zoom e pan
 - Regua em centimetros
+- Medicao de distancia em centimetros no canvas
 - Tipo de tecido: plano ou tubular
 - Seta de fio nas pecas com angulos 0, 45, 90, 135, 180 e 360 graus
 - Espelhamento e rotacao de pecas
