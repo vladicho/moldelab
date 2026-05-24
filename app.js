@@ -47,6 +47,7 @@ const ui = {
   rotation: document.querySelector("#rotation"),
   grainAngle: document.querySelector("#grainAngle"),
   selectionName: document.querySelector("#selectionName"),
+  pieceStats: document.querySelector("#pieceStats"),
   usedLength: document.querySelector("#usedLength"),
   efficiency: document.querySelector("#efficiency"),
   collisions: document.querySelector("#collisions"),
@@ -219,6 +220,15 @@ function polygonArea(points) {
     area += points[index][0] * points[next][1] - points[next][0] * points[index][1];
   }
   return Math.abs(area / 2);
+}
+
+function polygonPerimeter(points) {
+  let perimeter = 0;
+  for (let index = 0; index < points.length; index += 1) {
+    const next = (index + 1) % points.length;
+    perimeter += Math.hypot(points[next][0] - points[index][0], points[next][1] - points[index][1]);
+  }
+  return perimeter;
 }
 
 function pointInPolygon(point, polygon) {
@@ -607,6 +617,31 @@ function renderPieceList() {
     .join("");
 }
 
+function renderPieceStats(piece) {
+  if (!piece) {
+    ui.pieceStats.innerHTML = "";
+    return;
+  }
+  const points = transformedPoints(piece);
+  const box = bounds(points);
+  const width = box.maxX - box.minX;
+  const height = box.maxY - box.minY;
+  const area = polygonArea(points);
+  const perimeter = polygonPerimeter(points);
+  const seam = Number(piece.seamAllowance || 0);
+  const notches = piece.notches?.length || 0;
+  ui.pieceStats.innerHTML = `
+    <div><span>${width.toFixed(1)} cm</span><p>Largura</p></div>
+    <div><span>${height.toFixed(1)} cm</span><p>Altura</p></div>
+    <div><span>${area.toFixed(1)} cm2</span><p>Area</p></div>
+    <div><span>${perimeter.toFixed(1)} cm</span><p>Perimetro</p></div>
+    <div><span>${piece.points.length}</span><p>Pontos</p></div>
+    <div><span>${notches}</span><p>Piques</p></div>
+    <div><span>${seam.toFixed(1)} cm</span><p>Margem</p></div>
+    <div><span>${piece.grainAngle || 0}</span><p>Fio</p></div>
+  `;
+}
+
 function updateMetrics(collisions) {
   const allPoints = pieces.flatMap(transformedPoints);
   const box = bounds(allPoints);
@@ -628,6 +663,7 @@ function updateMetrics(collisions) {
   }
   ui.rotation.value = piece ? piece.rotation : 0;
   ui.grainAngle.value = String(piece?.grainAngle ?? 0);
+  renderPieceStats(piece);
   renderPieceList();
 }
 

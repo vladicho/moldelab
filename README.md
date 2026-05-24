@@ -17,6 +17,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Pecas vetoriais arrastaveis
 - Lista de pecas para selecao rapida
 - Bloqueio de pecas para evitar edicao ou encaixe acidental
+- Medidas tecnicas da peca selecionada
 - Renomear, duplicar e apagar pecas para grade manual
 - Edicao, insercao e remocao de pontos
 - Piques de costura nos pontos da peca
