@@ -33,7 +33,7 @@
                   Importar vetor
                   <input id="vectorInput" type="file" accept=".svg,.dxf,.ads,.plt" />
                 </label>
-                <button id="saveProject"><i data-lucide="save"></i><span>Salvar projeto</span></button>
+                <button id="saveProject"><i data-lucide="save"></i><span>Salvar projeto</span><kbd>Ctrl+S</kbd></button>
                 <button id="exportSvg"><i data-lucide="file-code"></i><span>Exportar SVG</span></button>
                 <button id="exportDxf"><i data-lucide="file-down"></i><span>Exportar DXF</span></button>
                 <button id="exportPlt"><i data-lucide="printer"></i><span>Exportar PLT</span></button>
@@ -73,30 +73,30 @@
             <details class="menu-dropdown">
               <summary><i data-lucide="mouse-pointer-2"></i><span>Modo</span></summary>
               <div class="menu-list">
-                <button id="modeMove" class="active" title="Mover pecas"><i data-lucide="move"></i><span>Mover</span></button>
-                <button id="modePoints" title="Editar pontos"><i data-lucide="mouse-pointer-2"></i><span>Pontos</span></button>
-                <button id="modeDraw" title="Criar molde do zero"><i data-lucide="pen-tool"></i><span>Desenhar</span></button>
-                <button id="modeCalibrate" title="Calibrar imagem"><i data-lucide="scan-line"></i><span>Calibrar</span></button>
-                <button id="modeTrace" title="Contornar molde"><i data-lucide="scan"></i><span>Digitalizar</span></button>
-                <button id="modePan" title="Mover tela"><i data-lucide="hand"></i><span>Pan</span></button>
-                <button id="modeMeasure" title="Medir distancia em centimetros"><i data-lucide="ruler"></i><span>Medir</span></button>
+                <button id="modeMove" class="active" title="Mover pecas"><i data-lucide="move"></i><span>Mover</span><kbd>M</kbd></button>
+                <button id="modePoints" title="Editar pontos"><i data-lucide="mouse-pointer-2"></i><span>Pontos</span><kbd>P</kbd></button>
+                <button id="modeDraw" title="Criar molde do zero"><i data-lucide="pen-tool"></i><span>Desenhar</span><kbd>D</kbd></button>
+                <button id="modeCalibrate" title="Calibrar imagem"><i data-lucide="scan-line"></i><span>Calibrar</span><kbd>C</kbd></button>
+                <button id="modeTrace" title="Contornar molde"><i data-lucide="scan"></i><span>Digitalizar</span><kbd>T</kbd></button>
+                <button id="modePan" title="Mover tela"><i data-lucide="hand"></i><span>Pan</span><kbd>H</kbd></button>
+                <button id="modeMeasure" title="Medir distancia em centimetros"><i data-lucide="ruler"></i><span>Medir</span><kbd>R</kbd></button>
               </div>
             </details>
             <details class="menu-dropdown">
               <summary><i data-lucide="eye"></i><span>Visualizar</span></summary>
               <div class="menu-list">
-                <button id="zoomOut" title="Diminuir zoom"><i data-lucide="zoom-out"></i><span>Diminuir zoom</span></button>
-                <button id="resetView" title="Centralizar"><i data-lucide="maximize"></i><span>Centralizar 100%</span></button>
-                <button id="zoomIn" title="Aumentar zoom"><i data-lucide="zoom-in"></i><span>Aumentar zoom</span></button>
+                <button id="zoomOut" title="Diminuir zoom"><i data-lucide="zoom-out"></i><span>Diminuir zoom</span><kbd>-</kbd></button>
+                <button id="resetView" title="Centralizar"><i data-lucide="maximize"></i><span>Centralizar 100%</span><kbd>0</kbd></button>
+                <button id="zoomIn" title="Aumentar zoom"><i data-lucide="zoom-in"></i><span>Aumentar zoom</span><kbd>+</kbd></button>
               </div>
             </details>
             <details class="menu-dropdown">
               <summary><i data-lucide="edit-3"></i><span>Editar</span></summary>
               <div class="menu-list">
-                <button id="undoAction" title="Desfazer"><i data-lucide="undo-2"></i><span>Desfazer</span></button>
-                <button id="redoAction" title="Refazer"><i data-lucide="redo-2"></i><span>Refazer</span></button>
+                <button id="undoAction" title="Desfazer"><i data-lucide="undo-2"></i><span>Desfazer</span><kbd>Ctrl+Z</kbd></button>
+                <button id="redoAction" title="Refazer"><i data-lucide="redo-2"></i><span>Refazer</span><kbd>Ctrl+Y</kbd></button>
                 <button id="finishTrace" title="Criar peca do contorno"><i data-lucide="check"></i><span>Fechar contorno</span></button>
-                <button id="addPiece"><i data-lucide="plus"></i><span>Nova peca</span></button>
+                <button id="addPiece"><i data-lucide="plus"></i><span>Nova peca</span><kbd>N</kbd></button>
               </div>
             </details>
             <details class="menu-dropdown">

@@ -16,6 +16,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Botoes compactos com icones e texto no hover/foco
 - Interface sem lateral de opcoes, com menus superiores para projeto, tecido, digitalizacao, modos, visualizacao, edicao e peca
 - Menus superiores fecham ao abrir outro menu, ao clicar fora ou com Esc
+- Atalhos de teclado para modos, zoom, nova peca e salvar projeto
 - Criacao de moldes do zero por pontos
 - Pecas vetoriais arrastaveis
 - Lista de pecas para selecao rapida

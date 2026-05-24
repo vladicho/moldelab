@@ -676,6 +676,10 @@ function setupMenuBehavior() {
   });
 }
 
+function isTypingTarget(target) {
+  return target.closest("input, textarea, select, [contenteditable='true']");
+}
+
 function pieceMetaLabel(piece) {
   return [piece.model, piece.size].map((value) => String(value || "").trim()).filter(Boolean).join(" / ");
 }
@@ -2351,8 +2355,40 @@ document.addEventListener("keydown", (event) => {
     closeMenus();
     return;
   }
+
+  const isTyping = isTypingTarget(event.target);
+  const key = event.key.toLowerCase();
+  if ((event.ctrlKey || event.metaKey) && key === "s") {
+    event.preventDefault();
+    saveProject();
+    return;
+  }
+  if (isTyping) return;
+
   const isUndo = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && !event.shiftKey;
   const isRedo = (event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === "y" || (event.shiftKey && event.key.toLowerCase() === "z"));
+  const shortcutActions = {
+    m: () => ui.modeMove.click(),
+    p: () => ui.modePoints.click(),
+    d: () => ui.modeDraw.click(),
+    c: () => ui.modeCalibrate.click(),
+    t: () => ui.modeTrace.click(),
+    h: () => ui.modePan.click(),
+    r: () => ui.modeMeasure.click(),
+    n: () => ui.addPiece.click(),
+    "+": () => ui.zoomIn.click(),
+    "=": () => ui.zoomIn.click(),
+    "-": () => ui.zoomOut.click(),
+    "0": () => ui.resetView.click(),
+  };
+  const shortcutAction = !event.ctrlKey && !event.metaKey ? shortcutActions[key] : null;
+  if (shortcutAction) {
+    event.preventDefault();
+    shortcutAction();
+    closeMenus();
+    return;
+  }
+
   const didNudge = !event.ctrlKey && !event.metaKey && nudgeSelectedPiece(event);
   if (!isUndo && !isRedo && !didNudge) return;
   event.preventDefault();

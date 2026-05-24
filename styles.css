@@ -176,10 +176,24 @@ button span {
   white-space: nowrap;
 }
 
+button kbd {
+  margin-left: auto;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 2px 5px;
+  background: #f4f6f2;
+  color: var(--muted);
+  font: 700 11px/1 Arial, Helvetica, sans-serif;
+}
+
 .icon-action {
   position: relative;
   width: 38px;
   padding: 0;
+}
+
+.icon-action > kbd {
+  display: none;
 }
 
 .icon-action > span {
@@ -314,6 +328,10 @@ button span {
   opacity: 1;
   pointer-events: auto;
   font-weight: 600;
+}
+
+.menu-list .icon-action > kbd {
+  display: inline-block;
 }
 
 button:hover {
