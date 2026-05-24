@@ -484,6 +484,25 @@ button.primary:hover {
   gap: 8px;
 }
 
+.scanner-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.scanner-panel small {
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.scanner-panel img {
+  width: 140px;
+  height: 140px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+}
+
 .status-line {
   min-height: 36px;
   border: 1px dashed var(--line);

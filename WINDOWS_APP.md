@@ -14,6 +14,7 @@ de desktop:
 - importar arquivos grandes sem depender do navegador
 - trabalhar offline
 - acessar impressoras e plotters
+- iniciar servidor local HTTP/WebSocket para scanner com camera do celular
 - integrar motores nativos de geometria, nesting e importacao
 - preparar instalador para modelistas e confeccoes
 
@@ -82,4 +83,27 @@ core/
 2. Adicionar abrir/salvar projeto local.
 3. Exportar SVG em pasta escolhida pelo usuario.
 4. Preparar menu nativo: Arquivo, Importar, Exportar, Ajuda.
-5. Depois mover importadores e nesting pesado para `core/`.
+5. Iniciar/parar o servidor local do scanner e exibir QR Code para o celular.
+6. Depois mover importadores e nesting pesado para `core/`.
+
+## Scanner local com celular
+
+Arquitetura implementada no prototipo:
+
+```text
+App Windows / navegador desktop
+|-- inicia scanner-server.js
+|-- mostra QR Code / URL mobile
+|-- recebe frames por WebSocket
+`-- usa frame como imagem base para calibracao e vetorizacao
+
+Celular na mesma rede Wi-Fi
+|-- abre mobile-scanner.html pelo navegador
+|-- usa getUserMedia quando permitido
+|-- envia frame/captura por WebSocket
+`-- usa fallback de foto se HTTP bloquear camera
+```
+
+Para producao, o app Windows deve preferir HTTPS local ou certificado instalado,
+porque navegadores mobile modernos podem bloquear `getUserMedia` em HTTP com IP
+da rede local.

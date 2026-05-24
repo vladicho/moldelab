@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MoldeLab Scanner Mobile</title>
+    <style>
+      body {
+        margin: 0;
+        background: #0f172a;
+        color: #f8fafc;
+        font-family: Arial, sans-serif;
+      }
+
+      main {
+        display: grid;
+        gap: 14px;
+        padding: 14px;
+      }
+
+      video {
+        width: 100%;
+        max-height: 70vh;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        background: #020617;
+        object-fit: contain;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      button,
+      label {
+        border: 1px solid #38bdf8;
+        border-radius: 8px;
+        padding: 13px;
+        background: #0891b2;
+        color: white;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      input {
+        display: none;
+      }
+
+      small {
+        color: #cbd5e1;
+        line-height: 1.35;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>MoldeLab Scanner</h1>
+      <video id="preview" playsinline muted autoplay></video>
+      <div class="actions">
+        <button id="startCamera">Abrir camera</button>
+        <button id="sendFrame">Enviar frame</button>
+        <button id="toggleLive">Ao vivo: off</button>
+        <label>
+          Foto fallback
+          <input id="fallbackPhoto" type="file" accept="image/*" capture="environment" />
+        </label>
+      </div>
+      <small id="status">Conectando ao app Windows...</small>
+    </main>
+    <script>
+      const preview = document.querySelector("#preview");
+      const statusEl = document.querySelector("#status");
+      const startCamera = document.querySelector("#startCamera");
+      const sendFrame = document.querySelector("#sendFrame");
+      const toggleLive = document.querySelector("#toggleLive");
+      const fallbackPhoto = document.querySelector("#fallbackPhoto");
+      const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+      const socket = new WebSocket(`${protocol}//${location.host}/ws/mobile`);
+      let stream = null;
+      let liveTimer = null;
+
+      function setStatus(message) {
+        statusEl.textContent = message;
+        if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "phone-status", message }));
+      }
+
+      async function openCamera() {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+            audio: false,
+          });
+          preview.srcObject = stream;
+          await preview.play();
+          setStatus("Camera aberta. Posicione o molde inteiro.");
+        } catch (error) {
+          setStatus("Camera bloqueada neste navegador. Use Foto fallback.");
+        }
+      }
+
+      function frameFromVideo() {
+        if (!preview.videoWidth) return null;
+        const canvas = document.createElement("canvas");
+        canvas.width = preview.videoWidth;
+        canvas.height = preview.videoHeight;
+        canvas.getContext("2d").drawImage(preview, 0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL("image/jpeg", 0.82);
+      }
+
+      function sendDataUrl(dataUrl) {
+        if (!dataUrl || socket.readyState !== WebSocket.OPEN) return;
+        socket.send(JSON.stringify({ type: "frame", dataUrl, capturedAt: Date.now() }));
+        setStatus("Frame enviado ao MoldeLab.");
+      }
+
+      function sendCurrentFrame() {
+        sendDataUrl(frameFromVideo());
+      }
+
+      socket.addEventListener("open", () => setStatus("Celular conectado ao MoldeLab."));
+      socket.addEventListener("message", (event) => {
+        const payload = JSON.parse(event.data);
+        if (payload.type === "capture") sendCurrentFrame();
+      });
+      socket.addEventListener("close", () => setStatus("Conexao fechada."));
+      startCamera.addEventListener("click", openCamera);
+      sendFrame.addEventListener("click", sendCurrentFrame);
+      toggleLive.addEventListener("click", () => {
+        if (liveTimer) {
+          clearInterval(liveTimer);
+          liveTimer = null;
+          toggleLive.textContent = "Ao vivo: off";
+          setStatus("Envio ao vivo pausado.");
+          return;
+        }
+        liveTimer = setInterval(sendCurrentFrame, 900);
+        toggleLive.textContent = "Ao vivo: on";
+        setStatus("Enviando frames ao vivo.");
+      });
+      fallbackPhoto.addEventListener("change", () => {
+        const file = fallbackPhoto.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => sendDataUrl(String(reader.result));
+        reader.readAsDataURL(file);
+      });
+    </script>
+  </body>
+</html>

@@ -64,6 +64,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Deteccao de sobreposicao
 - Digitalizacao por imagem com calibracao de escala
 - Captura por camera do celular ou webcam para digitalizacao ao vivo
+- Scanner local via celular: servidor HTTP/WebSocket, QR/URL mobile e captura de frame pela mesma rede Wi-Fi
 - Auto digitalizacao por varredura tipo scanner, contraste e diferenca de cor do fundo
 - Importacao SVG, DXF e PLT simples
 - Exportacao SVG
@@ -98,16 +99,30 @@ Abra `index.html` no navegador ou execute `abrir-moldelab.cmd` no Windows.
 ## Estrutura
 
 ```text
-index.html        Interface principal
-styles.css        Estilos
-app.js            Editor, nesting, digitalizacao e importadores
-IMPORTADORES.md   Arquitetura dos importadores
-MANUAL_GRADING.md Estrategia de grade manual de tamanhos
-PRODUCT_STRATEGY.md Estrategia para superar sistemas legados
-QUALITY_ASSURANCE.md Checklist de controle de qualidade
-SAAS_BILLING.md   Plano de login, assinaturas e pagamento
-WINDOWS_APP.md    Plano para aplicativo nativo Windows
+index.html             Interface principal
+styles.css             Estilos
+app.js                 Editor, nesting, digitalizacao e importadores
+scanner-server.js      Servidor local HTTP/WebSocket para scanner via celular
+mobile-scanner.html    Pagina mobile que usa a camera do navegador do celular
+abrir-scanner-local.cmd Atalho para iniciar o servidor local no Windows
+IMPORTADORES.md        Arquitetura dos importadores
+MANUAL_GRADING.md      Estrategia de grade manual de tamanhos
+PRODUCT_STRATEGY.md    Estrategia para superar sistemas legados
+QUALITY_ASSURANCE.md   Checklist de controle de qualidade
+SAAS_BILLING.md        Plano de login, assinaturas e pagamento
+WINDOWS_APP.md         Plano para aplicativo nativo Windows
 ```
+
+## Scanner pelo celular
+
+Execute `abrir-scanner-local.cmd` e abra o MoldeLab pelo endereco local mostrado
+no terminal. No menu Digitalizacao, leia o QR Code ou digite a URL mobile no
+celular. O celular deve estar na mesma rede Wi-Fi. O navegador mobile envia
+frames pelo WebSocket para o app, e o botao "Capturar do celular" solicita um
+frame para usar como imagem base de calibracao e vetorizacao.
+
+Se o navegador bloquear camera em HTTP, use o fallback "Foto fallback" na pagina
+mobile ou importe uma imagem manualmente no app.
 
 ## Qualidade
 

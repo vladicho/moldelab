@@ -43,6 +43,10 @@ const ui = {
   startCamera: document.querySelector("#startCamera"),
   captureCamera: document.querySelector("#captureCamera"),
   stopCamera: document.querySelector("#stopCamera"),
+  requestScannerFrame: document.querySelector("#requestScannerFrame"),
+  scannerStatus: document.querySelector("#scannerStatus"),
+  scannerQr: document.querySelector("#scannerQr"),
+  scannerUrl: document.querySelector("#scannerUrl"),
   calibrationLength: document.querySelector("#calibrationLength"),
   autoTrace: document.querySelector("#autoTrace"),
   digitizeStatus: document.querySelector("#digitizeStatus"),
@@ -113,6 +117,7 @@ let lockButtonState = null;
 let gridButtonState = null;
 let pieceClipboard = null;
 let cameraStream = null;
+let scannerSocket = null;
 
 const pieces = [
   {
@@ -2557,6 +2562,61 @@ function captureCameraFrame() {
   image.src = capture.toDataURL("image/jpeg", 0.92);
 }
 
+function loadScannerFrame(dataUrl, message = "Frame recebido do celular. Calibre a escala ou use Auto digitalizar.") {
+  const image = new Image();
+  image.onload = () => loadImageForDigitizing(image, message);
+  image.src = dataUrl;
+}
+
+async function connectLocalScanner() {
+  if (!/^https?:$/.test(location.protocol)) {
+    ui.scannerStatus.textContent = "Abra pelo servidor local para usar celular via QR/WebSocket.";
+    return;
+  }
+  try {
+    const infoResponse = await fetch("/scanner-info.json", { cache: "no-store" });
+    if (infoResponse.ok) {
+      const info = await infoResponse.json();
+      ui.scannerUrl.textContent = info.mobileUrl || "";
+      if (info.mobileUrl) {
+        ui.scannerQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(info.mobileUrl)}`;
+        ui.scannerQr.hidden = false;
+      }
+    }
+  } catch (error) {
+    ui.scannerStatus.textContent = "Servidor local sem informacao de QR.";
+  }
+
+  const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+  scannerSocket = new WebSocket(`${protocol}//${location.host}/ws/desktop`);
+  scannerSocket.addEventListener("open", () => {
+    ui.requestScannerFrame.disabled = false;
+    ui.scannerStatus.textContent = "Scanner local conectado. Escaneie o QR no celular.";
+  });
+  scannerSocket.addEventListener("message", (event) => {
+    const payload = JSON.parse(event.data);
+    if (payload.type === "frame" && payload.dataUrl) {
+      loadScannerFrame(payload.dataUrl);
+    }
+    if (payload.type === "phone-status") {
+      ui.scannerStatus.textContent = payload.message;
+    }
+  });
+  scannerSocket.addEventListener("close", () => {
+    ui.requestScannerFrame.disabled = true;
+    ui.scannerStatus.textContent = "Scanner local desconectado.";
+  });
+}
+
+function requestScannerFrame() {
+  if (!scannerSocket || scannerSocket.readyState !== WebSocket.OPEN) {
+    updateDigitizeStatus("Scanner local nao conectado.");
+    return;
+  }
+  scannerSocket.send(JSON.stringify({ type: "capture" }));
+  updateDigitizeStatus("Solicitando captura do celular...");
+}
+
 function calibrateImage() {
   if (!background || calibrationPoints.length !== 2) return;
   const reference = Number(ui.calibrationLength.value);
@@ -3174,6 +3234,7 @@ ui.autoTrace.addEventListener("click", traceImageContour);
 ui.startCamera.addEventListener("click", startCamera);
 ui.captureCamera.addEventListener("click", captureCameraFrame);
 ui.stopCamera.addEventListener("click", stopCamera);
+ui.requestScannerFrame.addEventListener("click", requestScannerFrame);
 ui.undoAction.addEventListener("click", undoAction);
 ui.redoAction.addEventListener("click", redoAction);
 ui.pieceList.addEventListener("click", (event) => {
@@ -3314,5 +3375,6 @@ document.addEventListener("keydown", (event) => {
 
 setupMenuBehavior();
 window.addEventListener("load", refreshIcons);
+window.addEventListener("load", connectLocalScanner);
 
 draw();
