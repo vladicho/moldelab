@@ -2570,7 +2570,8 @@ function loadScannerFrame(dataUrl, message = "Frame recebido do celular. Calibre
 
 async function connectLocalScanner() {
   if (!/^https?:$/.test(location.protocol)) {
-    ui.scannerStatus.textContent = "Abra pelo servidor local para usar celular via QR/WebSocket.";
+    ui.scannerStatus.textContent = "Para gerar QR: execute abrir-scanner-local.cmd e abra http://localhost:8787.";
+    ui.scannerUrl.textContent = "O QR nao aparece quando abre o index.html direto.";
     return;
   }
   try {
@@ -2584,7 +2585,7 @@ async function connectLocalScanner() {
       }
     }
   } catch (error) {
-    ui.scannerStatus.textContent = "Servidor local sem informacao de QR.";
+    ui.scannerStatus.textContent = "Servidor local sem informacao de QR. Execute abrir-scanner-local.cmd.";
   }
 
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";

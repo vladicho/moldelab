@@ -122,6 +122,12 @@ O celular deve estar na mesma rede Wi-Fi. O navegador mobile envia
 frames pelo WebSocket para o app, e o botao "Capturar do celular" solicita um
 frame para usar como imagem base de calibracao e vetorizacao.
 
+O QR Code so aparece quando o MoldeLab e aberto pelo servidor local
+(`http://localhost:8787`). Se abrir `index.html` direto, o navegador nao tem como
+consultar o servidor nem gerar o QR. O atalho `abrir-scanner-local.cmd` procura
+o Node.js instalado ou o runtime embutido do Codex e abre o navegador
+automaticamente.
+
 Se o navegador bloquear camera em HTTP, use o fallback "Foto fallback" na pagina
 mobile ou importe uma imagem manualmente no app.
 
