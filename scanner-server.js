@@ -9,6 +9,7 @@ const root = __dirname;
 const port = Number(process.env.MOLDELAB_SCANNER_PORT || 8787);
 const desktops = new Set();
 const mobiles = new Set();
+let latestFrame = null;
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -307,6 +308,17 @@ function sendToDesktops(payload) {
   for (const desktop of desktops) sendWs(desktop, raw);
 }
 
+function receiveMobileFrame(payload) {
+  latestFrame = {
+    type: "frame",
+    dataUrl: payload.dataUrl,
+    capturedAt: payload.capturedAt || Date.now(),
+    id: crypto.randomUUID(),
+  };
+  sendToDesktops(latestFrame);
+  return latestFrame;
+}
+
 function acceptWebSocket(request, socket, role) {
   const key = request.headers["sec-websocket-key"];
   const accept = crypto.createHash("sha1").update(`${key}258EAFA5-E914-47DA-95CA-C5AB0DC85B11`).digest("base64");
@@ -323,7 +335,20 @@ function acceptWebSocket(request, socket, role) {
     socket.wsBuffer = Buffer.concat([socket.wsBuffer, chunk]);
     const result = readWsFrames(socket.wsBuffer);
     socket.wsBuffer = result.remaining;
-    result.messages.forEach((message) => routeWs(socket, role, message));
+    result.messages.forEach((message) => {
+      if (role === "mobile") {
+        try {
+          const payload = JSON.parse(message);
+          if (payload.type === "frame" && payload.dataUrl) {
+            receiveMobileFrame(payload);
+            return;
+          }
+        } catch (error) {
+          // Forward non-JSON messages below.
+        }
+      }
+      routeWs(socket, role, message);
+    });
   });
   socket.on("close", () => group.delete(socket));
   socket.on("error", () => group.delete(socket));
@@ -342,14 +367,19 @@ const server = http.createServer((request, response) => {
       try {
         const payload = JSON.parse(body);
         if (!payload.dataUrl) throw new Error("missing frame");
-        sendToDesktops({ type: "frame", dataUrl: payload.dataUrl, capturedAt: payload.capturedAt || Date.now() });
+        const frame = receiveMobileFrame(payload);
         response.writeHead(200, { "Content-Type": mimeTypes[".json"] });
-        response.end(JSON.stringify({ ok: true, desktops: desktops.size }));
+        response.end(JSON.stringify({ ok: true, desktops: desktops.size, frameId: frame.id }));
       } catch (error) {
         response.writeHead(400, { "Content-Type": mimeTypes[".json"] });
         response.end(JSON.stringify({ ok: false, error: error.message }));
       }
     });
+    return;
+  }
+  if (url.pathname === "/scanner-latest-frame.json") {
+    response.writeHead(200, { "Content-Type": mimeTypes[".json"], "Cache-Control": "no-store" });
+    response.end(JSON.stringify({ ok: true, frame: latestFrame }));
     return;
   }
   if (url.pathname === "/scanner-info.json") {

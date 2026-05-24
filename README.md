@@ -131,7 +131,9 @@ automaticamente.
 
 Se o navegador bloquear camera em HTTP, use o fallback "Foto fallback" na pagina
 mobile. Esse fallback envia a foto por HTTP caso o WebSocket nao esteja aberto.
-Tambem continua sendo possivel importar uma imagem manualmente no app.
+O app desktop tambem consulta o ultimo frame recebido pelo servidor, entao a
+foto aparece mesmo se o WebSocket do desktop falhar. Tambem continua sendo
+possivel importar uma imagem manualmente no app.
 
 ## Qualidade
 

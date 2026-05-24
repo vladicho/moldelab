@@ -118,6 +118,8 @@ let gridButtonState = null;
 let pieceClipboard = null;
 let cameraStream = null;
 let scannerSocket = null;
+let scannerPollTimer = null;
+let latestScannerFrameId = null;
 
 const pieces = [
   {
@@ -2568,6 +2570,27 @@ function loadScannerFrame(dataUrl, message = "Frame recebido do celular. Calibre
   image.src = dataUrl;
 }
 
+function handleScannerPayload(payload, message) {
+  if (payload.id && payload.id === latestScannerFrameId) return;
+  latestScannerFrameId = payload.id || String(payload.capturedAt || Date.now());
+  loadScannerFrame(payload.dataUrl, message);
+  ui.scannerStatus.textContent = "Frame recebido do celular.";
+}
+
+async function pollLatestScannerFrame() {
+  if (!/^https?:$/.test(location.protocol)) return;
+  try {
+    const response = await fetch("/scanner-latest-frame.json", { cache: "no-store" });
+    if (!response.ok) return;
+    const payload = await response.json();
+    if (payload.frame?.dataUrl) {
+      handleScannerPayload(payload.frame, "Frame recebido por fallback HTTP. Calibre a escala ou use Auto digitalizar.");
+    }
+  } catch (error) {
+    // Polling is best-effort; WebSocket remains the primary path.
+  }
+}
+
 async function connectLocalScanner() {
   if (!/^https?:$/.test(location.protocol)) {
     ui.scannerStatus.textContent = "Para gerar QR: execute abrir-scanner-local.cmd e abra http://localhost:8787.";
@@ -2597,7 +2620,7 @@ async function connectLocalScanner() {
   scannerSocket.addEventListener("message", (event) => {
     const payload = JSON.parse(event.data);
     if (payload.type === "frame" && payload.dataUrl) {
-      loadScannerFrame(payload.dataUrl);
+      handleScannerPayload(payload, "Frame recebido por WebSocket. Calibre a escala ou use Auto digitalizar.");
     }
     if (payload.type === "phone-status") {
       ui.scannerStatus.textContent = payload.message;
@@ -2607,6 +2630,7 @@ async function connectLocalScanner() {
     ui.requestScannerFrame.disabled = true;
     ui.scannerStatus.textContent = "Scanner local desconectado.";
   });
+  scannerPollTimer = window.setInterval(pollLatestScannerFrame, 1500);
 }
 
 function requestScannerFrame() {
