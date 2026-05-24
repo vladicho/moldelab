@@ -28,6 +28,8 @@ const ui = {
   zoomOut: document.querySelector("#zoomOut"),
   zoomIn: document.querySelector("#zoomIn"),
   resetView: document.querySelector("#resetView"),
+  snapToGrid: document.querySelector("#snapToGrid"),
+  gridStep: document.querySelector("#gridStep"),
   addPiece: document.querySelector("#addPiece"),
   imageInput: document.querySelector("#imageInput"),
   calibrationLength: document.querySelector("#calibrationLength"),
@@ -273,6 +275,15 @@ function screenToWorld(screenX, screenY) {
   return [
     (screenX - origin.x - view.panX) / (baseScale * view.zoom),
     (screenY - origin.y - view.panY) / (baseScale * view.zoom),
+  ];
+}
+
+function snapPoint(point) {
+  if (!ui.snapToGrid.checked) return point;
+  const step = Math.max(0.1, Number(ui.gridStep.value) || 1);
+  return [
+    Math.round(point[0] / step) * step,
+    Math.round(point[1] / step) * step,
   ];
 }
 
@@ -1128,6 +1139,10 @@ function projectSnapshot() {
       spacing: Number(ui.spacing.value),
       height: fabricHeight,
     },
+    editor: {
+      snapToGrid: ui.snapToGrid.checked,
+      gridStep: Math.max(0.1, Number(ui.gridStep.value) || 1),
+    },
     counters: {
       newPieceCount,
       digitizedCount,
@@ -1171,6 +1186,8 @@ function restoreSnapshot(snapshot) {
   ui.fabricType.value = data.fabric?.type || "flat";
   ui.fabricWidth.value = data.fabric?.width || 150;
   ui.spacing.value = data.fabric?.spacing || 2;
+  ui.snapToGrid.checked = Boolean(data.editor?.snapToGrid);
+  ui.gridStep.value = data.editor?.gridStep || 1;
 
   pieces.splice(
     0,
@@ -1245,6 +1262,8 @@ function openProject(file) {
       ui.fabricType.value = data.fabric?.type || "flat";
       ui.fabricWidth.value = data.fabric?.width || 150;
       ui.spacing.value = data.fabric?.spacing || 2;
+      ui.snapToGrid.checked = Boolean(data.editor?.snapToGrid);
+      ui.gridStep.value = data.editor?.gridStep || 1;
 
       pieces.splice(
         0,
@@ -1806,6 +1825,7 @@ function finishTrace() {
 canvas.addEventListener("pointerdown", (event) => {
   const screen = eventScreen(event);
   const point = screenToWorld(screen[0], screen[1]);
+  const snappedPoint = snapPoint(point);
 
   if (mode === "pan") {
     dragState = { type: "pan", screen };
@@ -1839,7 +1859,7 @@ canvas.addEventListener("pointerdown", (event) => {
   }
 
   if (mode === "draw") {
-    contourPoints.push(point);
+    contourPoints.push(snappedPoint);
     updateDigitizeStatus(`${contourPoints.length} pontos desenhados. Use Fechar contorno para criar a peca.`);
     draw();
     return;
@@ -1879,7 +1899,7 @@ canvas.addEventListener("pointerdown", (event) => {
         return;
       }
       recordHistory();
-      const localPoint = inverseTransformedPoint(edge.piece, point);
+      const localPoint = inverseTransformedPoint(edge.piece, snappedPoint);
       edge.piece.points.splice(edge.insertAfter + 1, 0, localPoint);
       edge.piece.notches = (edge.piece.notches || []).map((pointIndex) =>
         pointIndex > edge.insertAfter ? pointIndex + 1 : pointIndex,
@@ -1905,8 +1925,8 @@ canvas.addEventListener("pointerdown", (event) => {
     dragState = {
       type: "piece",
       pieceId: piece.id,
-      offsetX: point[0] - piece.x,
-      offsetY: point[1] - piece.y,
+      offsetX: snappedPoint[0] - piece.x,
+      offsetY: snappedPoint[1] - piece.y,
     };
     canvas.setPointerCapture(event.pointerId);
   }
@@ -1917,6 +1937,7 @@ canvas.addEventListener("pointermove", (event) => {
   if (!dragState) return;
   const screen = eventScreen(event);
   const point = screenToWorld(screen[0], screen[1]);
+  const snappedPoint = snapPoint(point);
 
   if (dragState.type === "pan") {
     view.panX += screen[0] - dragState.screen[0];
@@ -1926,13 +1947,13 @@ canvas.addEventListener("pointermove", (event) => {
 
   if (dragState.type === "piece") {
     const piece = pieces.find((item) => item.id === dragState.pieceId);
-    piece.x = point[0] - dragState.offsetX;
-    piece.y = point[1] - dragState.offsetY;
+    piece.x = snappedPoint[0] - dragState.offsetX;
+    piece.y = snappedPoint[1] - dragState.offsetY;
   }
 
   if (dragState.type === "vertex") {
     const piece = pieces.find((item) => item.id === dragState.pieceId);
-    piece.points[dragState.pointIndex] = inverseTransformedPoint(piece, point);
+    piece.points[dragState.pointIndex] = inverseTransformedPoint(piece, snappedPoint);
   }
 
   draw();

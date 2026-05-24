@@ -20,6 +20,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Medidas tecnicas da peca selecionada
 - Renomear, duplicar e apagar pecas para grade manual
 - Edicao, insercao e remocao de pontos
+- Ajuste opcional de pontos e pecas na grade
 - Piques de costura nos pontos da peca
 - Margem de costura visual por peca
 - Desfazer e refazer alteracoes do projeto

@@ -125,6 +125,19 @@ input[type="range"] {
   accent-color: var(--accent);
 }
 
+.inline-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+}
+
+.inline-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
 button {
   border: 1px solid var(--line);
   border-radius: 6px;
