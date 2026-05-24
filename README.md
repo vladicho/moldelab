@@ -19,6 +19,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Barra de status com modo, peca selecionada, tecido, zoom e coordenadas do cursor
 - Mensagens de importacao, digitalizacao e acoes visiveis na barra de status
 - Atalhos de teclado para modos, zoom, nova peca e salvar projeto
+- Menu contextual com clique direito sobre a peca no canvas
 - Criacao de moldes do zero por pontos
 - Pecas vetoriais arrastaveis
 - Lista de pecas para selecao rapida

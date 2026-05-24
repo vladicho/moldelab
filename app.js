@@ -66,6 +66,7 @@ const ui = {
   statusZoom: document.querySelector("#statusZoom"),
   statusCursor: document.querySelector("#statusCursor"),
   statusMessage: document.querySelector("#statusMessage"),
+  pieceContextMenu: document.querySelector("#pieceContextMenu"),
 };
 
 const baseScale = 4;
@@ -662,6 +663,37 @@ function closeMenus(exceptMenu) {
       menu.removeAttribute("open");
     }
   });
+  closePieceContextMenu();
+}
+
+function closePieceContextMenu() {
+  ui.pieceContextMenu.hidden = true;
+}
+
+function updatePieceContextMenu() {
+  const piece = selectedPiece();
+  const lockButton = ui.pieceContextMenu.querySelector('[data-context-action="lock"]');
+  if (!piece || !lockButton) return;
+  lockButton.innerHTML = piece.locked
+    ? iconButtonMarkup("unlock", "Desbloquear peca")
+    : iconButtonMarkup("lock", "Bloquear peca");
+  refreshIcons();
+}
+
+function openPieceContextMenu(event, piece) {
+  closeMenus();
+  selectedId = piece.id;
+  selectedPointIndex = null;
+  mode = "move";
+  updatePieceContextMenu();
+  ui.pieceContextMenu.hidden = false;
+  const rect = ui.pieceContextMenu.getBoundingClientRect();
+  const left = Math.min(event.clientX, window.innerWidth - rect.width - 8);
+  const top = Math.min(event.clientY, window.innerHeight - rect.height - 8);
+  ui.pieceContextMenu.style.left = `${Math.max(8, left)}px`;
+  ui.pieceContextMenu.style.top = `${Math.max(8, top)}px`;
+  updateImportStatus(`Peca selecionada: ${piece.name}.`);
+  draw();
 }
 
 function setupMenuBehavior() {
@@ -672,7 +704,7 @@ function setupMenuBehavior() {
   });
 
   document.addEventListener("pointerdown", (event) => {
-    if (!event.target.closest(".menu-dropdown")) closeMenus();
+    if (!event.target.closest(".menu-dropdown") && !event.target.closest(".context-menu")) closeMenus();
   });
 
   document.querySelectorAll(".menu-dropdown button").forEach((button) => {
@@ -2057,6 +2089,7 @@ function finishTrace() {
 }
 
 canvas.addEventListener("pointerdown", (event) => {
+  closePieceContextMenu();
   const screen = eventScreen(event);
   const point = screenToWorld(screen[0], screen[1]);
   const snappedPoint = snapPoint(point);
@@ -2165,6 +2198,16 @@ canvas.addEventListener("pointerdown", (event) => {
     canvas.setPointerCapture(event.pointerId);
   }
   draw();
+});
+
+canvas.addEventListener("contextmenu", (event) => {
+  event.preventDefault();
+  const piece = pieceAt(eventWorld(event));
+  if (!piece) {
+    closePieceContextMenu();
+    return;
+  }
+  openPieceContextMenu(event, piece);
 });
 
 canvas.addEventListener("pointermove", (event) => {
@@ -2382,9 +2425,27 @@ ui.imageInput.addEventListener("change", (event) => importImage(event.target.fil
 ui.vectorInput.addEventListener("change", (event) => importVectorFile(event.target.files[0]));
 ui.projectInput.addEventListener("change", (event) => openProject(event.target.files[0]));
 
+ui.pieceContextMenu.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-context-action]");
+  if (!button) return;
+  const actions = {
+    duplicate: () => ui.duplicatePiece.click(),
+    delete: () => ui.deletePiece.click(),
+    lock: () => ui.toggleLockPiece.click(),
+    "rotate-left": () => ui.rotateLeft.click(),
+    "rotate-right": () => ui.rotateRight.click(),
+    mirror: () => ui.mirrorPiece.click(),
+    origin: () => ui.fitPieceOrigin.click(),
+    "center-width": () => ui.centerPieceWidth.click(),
+  };
+  actions[button.dataset.contextAction]?.();
+  closePieceContextMenu();
+});
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     closeMenus();
+    closePieceContextMenu();
     return;
   }
 

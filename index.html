@@ -199,6 +199,16 @@
         <div class="canvas-wrap">
           <canvas id="canvas" width="1280" height="760"></canvas>
         </div>
+        <div id="pieceContextMenu" class="context-menu" hidden>
+          <button data-context-action="duplicate"><i data-lucide="copy"></i><span>Duplicar peca</span></button>
+          <button data-context-action="delete"><i data-lucide="trash-2"></i><span>Apagar peca</span></button>
+          <button data-context-action="lock"><i data-lucide="lock"></i><span>Bloquear peca</span></button>
+          <button data-context-action="rotate-left"><i data-lucide="rotate-ccw"></i><span>Girar -15 graus</span></button>
+          <button data-context-action="rotate-right"><i data-lucide="rotate-cw"></i><span>Girar +15 graus</span></button>
+          <button data-context-action="mirror"><i data-lucide="flip-horizontal"></i><span>Espelhar peca</span></button>
+          <button data-context-action="origin"><i data-lucide="corner-up-left"></i><span>Na origem</span></button>
+          <button data-context-action="center-width"><i data-lucide="align-horizontal-justify-center"></i><span>Centralizar largura</span></button>
+        </div>
       </section>
     </main>
 

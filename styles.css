@@ -334,6 +334,45 @@ button kbd {
   display: inline-block;
 }
 
+.context-menu {
+  position: fixed;
+  z-index: 40;
+  min-width: 210px;
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px;
+  background: white;
+  box-shadow: 0 14px 35px rgba(17, 24, 39, 0.18);
+}
+
+.context-menu[hidden] {
+  display: none;
+}
+
+.context-menu button {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 9px;
+  padding: 0 10px;
+}
+
+.context-menu button span {
+  position: static;
+  max-width: none;
+  width: auto;
+  transform: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+  opacity: 1;
+  pointer-events: auto;
+  font-weight: 600;
+}
+
 button:hover {
   border-color: var(--accent);
 }
