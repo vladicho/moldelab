@@ -1460,6 +1460,23 @@ function nudgeSelectedPiece(event) {
   const target = event.target;
   if (["INPUT", "SELECT", "TEXTAREA"].includes(target?.tagName)) return false;
   const step = event.shiftKey ? 5 : Math.max(0.1, Number(ui.gridStep.value) || 1);
+  const piece = selectedPiece();
+
+  if (mode === "points" && piece && selectedPointIndex !== null) {
+    if (piece.locked) {
+      updateImportStatus("Desbloqueie a peca antes de mover pontos.");
+      return true;
+    }
+    const worldPoint = transformedPoints(piece)[selectedPointIndex];
+    if (!worldPoint) return false;
+    const movedPoint = [worldPoint[0] + direction[0] * step, worldPoint[1] + direction[1] * step];
+    recordHistory();
+    piece.points[selectedPointIndex] = inverseTransformedPoint(piece, movedPoint);
+    updateImportStatus(`Ponto movido ${step} cm.`);
+    draw();
+    return true;
+  }
+
   moveSelectedPieceBy(direction[0] * step, direction[1] * step, `Peca movida ${step} cm.`);
   return true;
 }

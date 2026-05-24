@@ -22,6 +22,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Movimento fino da peca selecionada pelo teclado
 - Renomear, duplicar e apagar pecas para grade manual
 - Edicao, insercao e remocao de pontos
+- Movimento fino do ponto selecionado pelo teclado
 - Ajuste opcional de pontos e pecas na grade
 - Piques de costura nos pontos da peca
 - Margem de costura visual por peca
