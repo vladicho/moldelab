@@ -55,6 +55,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Encaixe pode girar pecas em 180 graus sem mudar o sentido do fio
 - Mensagem do encaixe informa porcentagem de aproveitamento e comprimento usado
 - Cabecario do risco com largura, comprimento, pecas encaixadas, aproveitamento, grade, modelos e arquivo
+- Exportacao PLT e mini risco marcam a linha final do encaixe e levam o cabecario fora do tecido
 - Deteccao de sobreposicao
 - Digitalizacao por imagem com calibracao de escala
 - Importacao SVG, DXF e PLT simples

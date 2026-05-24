@@ -992,16 +992,29 @@ function fitHeaderText(values, fallback = "-") {
   return text.length > 42 ? `${text.slice(0, 39)}...` : text;
 }
 
-function updateMarkerHeader(stats) {
+function markerHeaderData(stats = markerStats()) {
   const grade = uniqueFilled(pieces.map((piece) => piece.size));
   const models = uniqueFilled(pieces.map((piece) => piece.model || piece.name));
+  return [
+    ["Largura", `${Number(ui.fabricWidth.value).toFixed(0)} cm`],
+    ["Comprimento", `${stats.usedLength.toFixed(1)} cm`],
+    ["Pecas encaixadas", String(pieces.length)],
+    ["Aproveitamento", `${stats.efficiency.toFixed(1)}%`],
+    ["Grade", fitHeaderText(grade)],
+    ["Modelos", fitHeaderText(models)],
+    ["Arquivo", safeProjectFilename("moldelab.json")],
+  ];
+}
+
+function updateMarkerHeader(stats) {
+  const header = Object.fromEntries(markerHeaderData(stats));
   ui.headerWidth.textContent = `${Number(ui.fabricWidth.value).toFixed(0)} cm`;
-  ui.headerLength.textContent = `${stats.usedLength.toFixed(1)} cm`;
-  ui.headerPieces.textContent = String(pieces.length);
-  ui.headerEfficiency.textContent = `${stats.efficiency.toFixed(1)}%`;
-  ui.headerGrade.textContent = fitHeaderText(grade);
-  ui.headerModels.textContent = fitHeaderText(models);
-  ui.headerFile.textContent = safeProjectFilename("moldelab.json");
+  ui.headerLength.textContent = header.Comprimento;
+  ui.headerPieces.textContent = header["Pecas encaixadas"];
+  ui.headerEfficiency.textContent = header.Aproveitamento;
+  ui.headerGrade.textContent = header.Grade;
+  ui.headerModels.textContent = header.Modelos;
+  ui.headerFile.textContent = header.Arquivo;
 }
 
 function updateMetrics(collisions) {
@@ -1317,6 +1330,10 @@ function hpglPoint([x, y]) {
   return [Math.round(x * unitsPerCm), Math.round(y * unitsPerCm)];
 }
 
+function hpglLabel(text) {
+  return String(text).replace(/[;\x03\r\n]/g, " ");
+}
+
 function pieceGrainlinePoints(piece, points) {
   const box = bounds(points);
   const centerX = (box.minX + box.maxX) / 2;
@@ -1333,6 +1350,8 @@ function pieceGrainlinePoints(piece, points) {
 
 function exportPltMarkup() {
   const commands = ["IN;", "SP1;", "VS20;"];
+  const stats = markerStats();
+  const fabricWidth = Number(ui.fabricWidth.value);
 
   pieces.forEach((piece) => {
     const points = transformedPoints(piece);
@@ -1364,6 +1383,48 @@ function exportPltMarkup() {
     });
   });
 
+  const [endLineX, endLineTop] = hpglPoint([stats.usedLength, 0]);
+  const [, endLineBottom] = hpglPoint([stats.usedLength, fabricWidth]);
+  commands.push(`PU${endLineX},${endLineTop};`);
+  commands.push(`PD${endLineX},${endLineBottom};`);
+  commands.push("PU;");
+
+  const headerRows = markerHeaderData(stats);
+  const headerX = 0;
+  const headerY = fabricWidth + 6;
+  const headerWidth = Math.max(120, stats.usedLength);
+  const rowHeight = 2.8;
+  const labelColumnWidth = 28;
+  const headerPoints = [
+    [headerX, headerY],
+    [headerX + headerWidth, headerY],
+    [headerX + headerWidth, headerY + headerRows.length * rowHeight],
+    [headerX, headerY + headerRows.length * rowHeight],
+  ];
+  const [headerStartX, headerStartY] = hpglPoint(headerPoints[0]);
+  commands.push(`PU${headerStartX},${headerStartY};`);
+  commands.push(`PD${headerPoints.map((point) => hpglPoint(point).join(",")).join(",")},${headerStartX},${headerStartY};`);
+  commands.push("PU;");
+  commands.push("SI0.25,0.35;");
+
+  headerRows.forEach(([label, value], index) => {
+    const y = headerY + index * rowHeight;
+    const [lineStartX, lineStartY] = hpglPoint([headerX, y]);
+    const [lineEndX, lineEndY] = hpglPoint([headerX + headerWidth, y]);
+    commands.push(`PU${lineStartX},${lineStartY};`);
+    commands.push(`PD${lineEndX},${lineEndY};`);
+    commands.push("PU;");
+    const [labelX, labelY] = hpglPoint([headerX + 1.2, y + 1.9]);
+    const [valueX, valueY] = hpglPoint([headerX + labelColumnWidth, y + 1.9]);
+    commands.push(`PU${labelX},${labelY};LB${hpglLabel(label)}\x03`);
+    commands.push(`PU${valueX},${valueY};LB${hpglLabel(value)}\x03`);
+  });
+  const [columnX, columnTopY] = hpglPoint([headerX + labelColumnWidth - 1, headerY]);
+  const [, columnBottomY] = hpglPoint([headerX + labelColumnWidth - 1, headerY + headerRows.length * rowHeight]);
+  commands.push(`PU${columnX},${columnTopY};`);
+  commands.push(`PD${columnX},${columnBottomY};`);
+  commands.push("PU;");
+
   commands.push("SP0;");
   return commands.join("\n");
 }
@@ -1382,10 +1443,14 @@ function exportPlt() {
 
 function exportMiniMarker() {
   const fabricWidth = Number(ui.fabricWidth.value);
-  const length = markerLength();
+  const stats = markerStats();
+  const length = Math.max(markerLength(), stats.usedLength);
   const previewWidth = 1600;
   const margin = 48;
-  const headerHeight = 86;
+  const headerRows = markerHeaderData(stats);
+  const titleHeight = 54;
+  const tableRowHeight = 34;
+  const headerHeight = titleHeight + headerRows.length * tableRowHeight + 30;
   const previewScale = (previewWidth - margin * 2) / length;
   const previewHeight = Math.ceil(headerHeight + fabricWidth * previewScale + margin);
   const output = document.createElement("canvas");
@@ -1399,13 +1464,36 @@ function exportMiniMarker() {
   out.fillStyle = "#111827";
   out.font = "700 28px Arial";
   out.fillText(ui.projectName.value || "MoldeLab Projeto", margin, 38);
-  out.font = "18px Arial";
-  out.fillStyle = "#4b5563";
-  out.fillText(
-    `Mini risco - ${ui.fabricType.value === "tubular" ? "Tecido tubular" : "Tecido plano"} - comprimento ${length.toFixed(1)} cm - largura ${fabricWidth} cm`,
-    margin,
-    66,
-  );
+
+  const tableX = margin;
+  const tableY = titleHeight;
+  const tableWidth = previewWidth - margin * 2;
+  const labelWidth = 260;
+  out.strokeStyle = "#6b7280";
+  out.lineWidth = 2;
+  out.strokeRect(tableX, tableY, tableWidth, headerRows.length * tableRowHeight);
+  headerRows.forEach(([label, value], index) => {
+    const y = tableY + index * tableRowHeight;
+    out.fillStyle = index % 2 === 0 ? "#f8faf7" : "#ffffff";
+    out.fillRect(tableX, y, tableWidth, tableRowHeight);
+    out.strokeStyle = "#d1d5db";
+    out.lineWidth = 1;
+    out.beginPath();
+    out.moveTo(tableX, y);
+    out.lineTo(tableX + tableWidth, y);
+    out.moveTo(tableX + labelWidth, y);
+    out.lineTo(tableX + labelWidth, y + tableRowHeight);
+    out.stroke();
+    out.fillStyle = "#4b5563";
+    out.font = "700 16px Arial";
+    out.fillText(label, tableX + 14, y + 22);
+    out.fillStyle = "#111827";
+    out.font = "700 17px Arial";
+    out.fillText(value, tableX + labelWidth + 14, y + 22);
+  });
+  out.strokeStyle = "#6b7280";
+  out.lineWidth = 2;
+  out.strokeRect(tableX, tableY, tableWidth, headerRows.length * tableRowHeight);
 
   const ox = margin;
   const oy = headerHeight;
@@ -1482,6 +1570,22 @@ function exportMiniMarker() {
     out.font = "700 16px Arial";
     out.fillText(pieceDisplayLabel(piece), ox + (box.minX + 1.5) * previewScale, oy + (box.minY + 5) * previewScale);
   });
+
+  const endX = ox + stats.usedLength * previewScale;
+  out.save();
+  out.strokeStyle = "#111827";
+  out.lineWidth = 4;
+  out.setLineDash([14, 9]);
+  out.beginPath();
+  out.moveTo(endX, oy);
+  out.lineTo(endX, oy + fh);
+  out.stroke();
+  out.setLineDash([]);
+  out.fillStyle = "#111827";
+  out.font = "700 18px Arial";
+  out.textAlign = "right";
+  out.fillText(`FIM ${stats.usedLength.toFixed(1)} cm`, endX - 8, oy + 24);
+  out.restore();
 
   output.toBlob((blob) => {
     if (!blob) {
