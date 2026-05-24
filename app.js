@@ -1271,6 +1271,12 @@ function exportSvgMarkup() {
   const fabricWidth = Number(ui.fabricWidth.value);
   const length = markerLength();
   const stats = markerStats();
+  const headerRows = markerHeaderData(stats);
+  const headerY = fabricWidth + 6;
+  const headerWidth = Math.max(120, length);
+  const rowHeight = 5;
+  const labelColumnWidth = 30;
+  const svgHeight = headerY + headerRows.length * rowHeight + 4;
   const paths = pieces
     .map((piece) => {
       const points = transformedPoints(piece);
@@ -1290,11 +1296,20 @@ function exportSvgMarkup() {
       return `<g><path d="${d} Z" fill="${pieceColor}22" stroke="${pieceColor}" stroke-width="0.6"><title>${escapeHtml(pieceDisplayLabel(piece))}</title></path>${seam}${notches}</g>`;
     })
     .join("\n  ");
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${length}cm" height="${fabricWidth}cm" viewBox="0 0 ${length} ${fabricWidth}">
+  const header = headerRows
+    .map(([label, value], index) => {
+      const y = headerY + index * rowHeight;
+      return `<rect x="0" y="${y}" width="${headerWidth}" height="${rowHeight}" fill="${index % 2 === 0 ? "#f8faf7" : "#ffffff"}" stroke="#6b7280" stroke-width="0.25"/>
+  <text x="1.5" y="${(y + 3.4).toFixed(2)}" font-family="Arial" font-size="2.8" font-weight="700" fill="#4b5563">${escapeHtml(label)}</text>
+  <text x="${labelColumnWidth}" y="${(y + 3.4).toFixed(2)}" font-family="Arial" font-size="2.8" font-weight="700" fill="#111827">${escapeHtml(value)}</text>`;
+    })
+    .join("\n  ");
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${length}cm" height="${svgHeight}cm" viewBox="0 0 ${length} ${svgHeight}">
   <rect x="0" y="0" width="${length}" height="${fabricWidth}" fill="#f9faf7" stroke="#6b7280" stroke-width="0.5"/>
   <line x1="${stats.usedLength.toFixed(2)}" y1="0" x2="${stats.usedLength.toFixed(2)}" y2="${fabricWidth}" stroke="#111827" stroke-width="0.45" stroke-dasharray="1.8 1.2"/>
   <text x="${Math.max(0, stats.usedLength - 1).toFixed(2)}" y="4" text-anchor="end" font-family="Arial" font-size="4" font-weight="700" fill="#111827">FIM ${stats.usedLength.toFixed(1)} cm</text>
   ${paths}
+  ${header}
 </svg>`;
 }
 
@@ -1320,7 +1335,25 @@ function dxfPolyline(points, layer, closed = true) {
   return lines;
 }
 
+function dxfText(text, point, height, layer) {
+  return [
+    dxfPair(0, "TEXT"),
+    dxfPair(8, layer),
+    dxfPair(10, point[0].toFixed(3)),
+    dxfPair(20, point[1].toFixed(3)),
+    dxfPair(40, height.toFixed(3)),
+    dxfPair(1, String(text).replace(/[\r\n]/g, " ")),
+  ];
+}
+
 function exportDxfMarkup() {
+  const stats = markerStats();
+  const fabricWidth = Number(ui.fabricWidth.value);
+  const headerRows = markerHeaderData(stats);
+  const headerY = fabricWidth + 6;
+  const headerWidth = Math.max(120, markerLength());
+  const rowHeight = 2.8;
+  const labelColumnWidth = 28;
   const lines = [
     dxfPair(0, "SECTION"),
     dxfPair(2, "HEADER"),
@@ -1341,6 +1374,30 @@ function exportDxfMarkup() {
     notchSegments(piece, points).forEach(({ start, end }) => {
       lines.push(...dxfPolyline([start, end], "MOLDE_PIQUE", false));
     });
+  });
+
+  lines.push(...dxfPolyline([[stats.usedLength, 0], [stats.usedLength, fabricWidth]], "MOLDE_FIM_ENCAIXE", false));
+  lines.push(...dxfText(`FIM ${stats.usedLength.toFixed(1)} cm`, [Math.max(0, stats.usedLength - 22), 4], 2.5, "MOLDE_FIM_ENCAIXE"));
+
+  const headerBottom = headerY + headerRows.length * rowHeight;
+  lines.push(
+    ...dxfPolyline(
+      [
+        [0, headerY],
+        [headerWidth, headerY],
+        [headerWidth, headerBottom],
+        [0, headerBottom],
+      ],
+      "MOLDE_CABECARIO",
+      true,
+    ),
+  );
+  lines.push(...dxfPolyline([[labelColumnWidth - 1, headerY], [labelColumnWidth - 1, headerBottom]], "MOLDE_CABECARIO", false));
+  headerRows.forEach(([label, value], index) => {
+    const y = headerY + index * rowHeight;
+    lines.push(...dxfPolyline([[0, y], [headerWidth, y]], "MOLDE_CABECARIO", false));
+    lines.push(...dxfText(label, [1.2, y + 1.9], 1.4, "MOLDE_CABECARIO"));
+    lines.push(...dxfText(value, [labelColumnWidth, y + 1.9], 1.4, "MOLDE_CABECARIO"));
   });
 
   lines.push(dxfPair(0, "ENDSEC"));
