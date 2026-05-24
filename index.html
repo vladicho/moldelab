@@ -101,6 +101,8 @@
               <div class="menu-list">
                 <button id="undoAction" title="Desfazer"><i data-lucide="undo-2"></i><span>Desfazer</span><kbd>Ctrl+Z</kbd></button>
                 <button id="redoAction" title="Refazer"><i data-lucide="redo-2"></i><span>Refazer</span><kbd>Ctrl+Y</kbd></button>
+                <button id="copyPiece"><i data-lucide="copy"></i><span>Copiar peca</span><kbd>Ctrl+C</kbd></button>
+                <button id="pastePiece"><i data-lucide="clipboard-paste"></i><span>Colar peca</span><kbd>Ctrl+V</kbd></button>
                 <button id="finishTrace" title="Criar peca do contorno"><i data-lucide="check"></i><span>Fechar contorno</span></button>
                 <button id="addPiece"><i data-lucide="plus"></i><span>Nova peca</span><kbd>N</kbd></button>
               </div>
@@ -207,6 +209,7 @@
         </div>
         <div id="pieceContextMenu" class="context-menu" hidden>
           <button data-context-action="duplicate"><i data-lucide="copy"></i><span>Duplicar peca</span></button>
+          <button data-context-action="copy"><i data-lucide="clipboard-copy"></i><span>Copiar peca</span></button>
           <button data-context-action="delete"><i data-lucide="trash-2"></i><span>Apagar peca</span></button>
           <button data-context-action="lock"><i data-lucide="lock"></i><span>Bloquear peca</span></button>
           <button data-context-action="rotate-left"><i data-lucide="rotate-ccw"></i><span>Girar -15 graus</span></button>
@@ -222,6 +225,7 @@
         </div>
         <div id="canvasContextMenu" class="context-menu" hidden>
           <button data-canvas-action="add-piece"><i data-lucide="plus"></i><span>Nova peca</span></button>
+          <button data-canvas-action="paste-piece"><i data-lucide="clipboard-paste"></i><span>Colar peca</span></button>
           <button data-canvas-action="auto-nest"><i data-lucide="sparkles"></i><span>Encaixe automatico</span></button>
           <button data-canvas-action="draw"><i data-lucide="pen-tool"></i><span>Desenhar molde</span></button>
           <button data-canvas-action="measure"><i data-lucide="ruler"></i><span>Medir distancia</span></button>

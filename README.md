@@ -20,6 +20,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Mensagens de importacao, digitalizacao e acoes visiveis na barra de status
 - Atalhos de teclado para modos, zoom, nova peca e salvar projeto
 - Atalhos Ctrl+D para duplicar e Delete/Backspace para apagar ponto ou peca
+- Copiar e colar peca com Ctrl+C/Ctrl+V usando area de transferencia interna do projeto
 - Menu contextual com clique direito sobre a peca ou ponto no canvas
 - Menu contextual no canvas vazio para nova peca, encaixe, modos e zoom
 - Ajustar a tela para enquadrar todas as pecas rapidamente

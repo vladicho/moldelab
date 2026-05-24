@@ -25,6 +25,9 @@ const ui = {
   finishTrace: document.querySelector("#finishTrace"),
   undoAction: document.querySelector("#undoAction"),
   redoAction: document.querySelector("#redoAction"),
+  copyPiece: document.querySelector("#copyPiece"),
+  pastePiece: document.querySelector("#pastePiece"),
+  canvasPastePiece: document.querySelector('[data-canvas-action="paste-piece"]'),
   zoomOut: document.querySelector("#zoomOut"),
   zoomIn: document.querySelector("#zoomIn"),
   resetView: document.querySelector("#resetView"),
@@ -96,6 +99,7 @@ let redoStack = [];
 let historySuspended = false;
 let lockButtonState = null;
 let gridButtonState = null;
+let pieceClipboard = null;
 
 const pieces = [
   {
@@ -786,6 +790,11 @@ function updateGridButtons() {
   refreshIcons();
 }
 
+function updateClipboardButtons() {
+  ui.pastePiece.disabled = !pieceClipboard;
+  ui.canvasPastePiece.disabled = !pieceClipboard;
+}
+
 function renderPieceList() {
   ui.pieceList.innerHTML = pieces
     .map((piece, index) => {
@@ -843,6 +852,7 @@ function updateMetrics(collisions) {
 
   const piece = selectedPiece();
   updateGridButtons();
+  updateClipboardButtons();
   ui.statusMode.textContent = modeLabel();
   ui.statusPiece.textContent = piece ? pieceDisplayLabel(piece) : "Nenhuma";
   ui.statusFabric.textContent = `${ui.fabricType.value === "tubular" ? "Tubular" : "Plano"} ${Number(ui.fabricWidth.value).toFixed(0)} cm`;
@@ -1572,14 +1582,34 @@ function addPiece() {
 function duplicateSelectedPiece() {
   const source = selectedPiece();
   if (!source) return;
+  pastePieceFromSource(source, `${source.name} copia`, 8);
+}
+
+function copySelectedPiece() {
+  const piece = selectedPiece();
+  if (!piece) return;
+  pieceClipboard = cloneSnapshot(piece);
+  updateClipboardButtons();
+  updateImportStatus(`Peca copiada: ${piece.name}.`);
+}
+
+function pasteCopiedPiece() {
+  if (!pieceClipboard) {
+    updateImportStatus("Nenhuma peca copiada.");
+    return;
+  }
+  pastePieceFromSource(pieceClipboard, `${pieceClipboard.name || "Peca"} colada`, 12);
+}
+
+function pastePieceFromSource(source, name, offset) {
   recordHistory();
   const id = `copy-${Date.now()}`;
   const copy = {
     ...source,
     id,
-    name: `${source.name} copia`,
-    x: source.x + 8,
-    y: source.y + 8,
+    name,
+    x: source.x + offset,
+    y: source.y + offset,
     locked: false,
     points: source.points.map(([x, y]) => [x, y]),
     notches: [...(source.notches || [])],
@@ -1587,7 +1617,7 @@ function duplicateSelectedPiece() {
   pieces.push(copy);
   selectedId = id;
   mode = "points";
-  updateImportStatus(`Peca duplicada: ${copy.name}`);
+  updateImportStatus(`Peca criada: ${copy.name}`);
   draw();
 }
 
@@ -2485,6 +2515,8 @@ ui.exportDxf.addEventListener("click", exportDxf);
 ui.exportPlt.addEventListener("click", exportPlt);
 ui.exportMiniMarker.addEventListener("click", exportMiniMarker);
 ui.addPiece.addEventListener("click", addPiece);
+ui.copyPiece.addEventListener("click", copySelectedPiece);
+ui.pastePiece.addEventListener("click", pasteCopiedPiece);
 ui.finishTrace.addEventListener("click", finishTrace);
 ui.undoAction.addEventListener("click", undoAction);
 ui.redoAction.addEventListener("click", redoAction);
@@ -2506,6 +2538,7 @@ ui.pieceContextMenu.addEventListener("click", (event) => {
   if (!button) return;
   const actions = {
     duplicate: () => ui.duplicatePiece.click(),
+    copy: () => ui.copyPiece.click(),
     delete: () => ui.deletePiece.click(),
     lock: () => ui.toggleLockPiece.click(),
     "rotate-left": () => ui.rotateLeft.click(),
@@ -2528,6 +2561,7 @@ ui.canvasContextMenu.addEventListener("click", (event) => {
   if (!button) return;
   const actions = {
     "add-piece": () => ui.addPiece.click(),
+    "paste-piece": () => ui.pastePiece.click(),
     "auto-nest": () => ui.autoNest.click(),
     draw: () => ui.modeDraw.click(),
     measure: () => ui.modeMeasure.click(),
@@ -2560,6 +2594,18 @@ document.addEventListener("keydown", (event) => {
   if ((event.ctrlKey || event.metaKey) && key === "d") {
     event.preventDefault();
     ui.duplicatePiece.click();
+    closeMenus();
+    return;
+  }
+  if ((event.ctrlKey || event.metaKey) && key === "c") {
+    event.preventDefault();
+    ui.copyPiece.click();
+    closeMenus();
+    return;
+  }
+  if ((event.ctrlKey || event.metaKey) && key === "v") {
+    event.preventDefault();
+    ui.pastePiece.click();
     closeMenus();
     return;
   }
