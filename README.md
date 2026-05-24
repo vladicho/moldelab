@@ -24,6 +24,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Ajustar a tela para enquadrar todas as pecas rapidamente
 - Grade visual opcional usando o passo configurado em centimetros
 - Botao de grade alterna entre mostrar e ocultar conforme estado atual
+- Menu contextual respeita bloqueio da peca e desabilita acoes bloqueadas
 - Criacao de moldes do zero por pontos
 - Pecas vetoriais arrastaveis
 - Lista de pecas para selecao rapida

@@ -697,12 +697,18 @@ function updatePieceContextMenu() {
   const piece = selectedPiece();
   const lockButton = ui.pieceContextMenu.querySelector('[data-context-action="lock"]');
   const pointButtons = ui.pieceContextMenu.querySelectorAll('[data-context-action="add-notch"], [data-context-action="delete-notch"], [data-context-action="delete-point"]');
+  const lockedButtons = ui.pieceContextMenu.querySelectorAll(
+    '[data-context-action="delete"], [data-context-action="rotate-left"], [data-context-action="rotate-right"], [data-context-action="mirror"], [data-context-action="origin"], [data-context-action="center-width"], [data-context-action="left"], [data-context-action="top"]',
+  );
   if (!piece || !lockButton) return;
   lockButton.innerHTML = piece.locked
     ? iconButtonMarkup("unlock", "Desbloquear peca")
     : iconButtonMarkup("lock", "Bloquear peca");
+  lockedButtons.forEach((button) => {
+    button.disabled = piece.locked;
+  });
   pointButtons.forEach((button) => {
-    button.disabled = selectedPointIndex === null;
+    button.disabled = piece.locked || selectedPointIndex === null;
   });
   refreshIcons();
 }
