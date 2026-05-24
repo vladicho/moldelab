@@ -117,7 +117,8 @@ WINDOWS_APP.md         Plano para aplicativo nativo Windows
 
 Execute `abrir-scanner-local.cmd` e abra o MoldeLab pelo endereco local mostrado
 no terminal. No menu Digitalizacao, leia o QR Code ou digite a URL mobile no
-celular. O celular deve estar na mesma rede Wi-Fi. O navegador mobile envia
+celular. O QR Code e gerado pelo proprio servidor local, sem depender de internet.
+O celular deve estar na mesma rede Wi-Fi. O navegador mobile envia
 frames pelo WebSocket para o app, e o botao "Capturar do celular" solicita um
 frame para usar como imagem base de calibracao e vetorizacao.
 

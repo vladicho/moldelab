@@ -2579,7 +2579,7 @@ async function connectLocalScanner() {
       const info = await infoResponse.json();
       ui.scannerUrl.textContent = info.mobileUrl || "";
       if (info.mobileUrl) {
-        ui.scannerQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(info.mobileUrl)}`;
+        ui.scannerQr.src = `${info.qrUrl || "/scanner-qr.svg"}?t=${Date.now()}`;
         ui.scannerQr.hidden = false;
       }
     }
