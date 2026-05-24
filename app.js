@@ -38,6 +38,10 @@ const ui = {
   rotateLeft: document.querySelector("#rotateLeft"),
   rotateRight: document.querySelector("#rotateRight"),
   mirrorPiece: document.querySelector("#mirrorPiece"),
+  fitPieceOrigin: document.querySelector("#fitPieceOrigin"),
+  centerPieceWidth: document.querySelector("#centerPieceWidth"),
+  alignPieceLeft: document.querySelector("#alignPieceLeft"),
+  alignPieceTop: document.querySelector("#alignPieceTop"),
   pieceName: document.querySelector("#pieceName"),
   seamAllowance: document.querySelector("#seamAllowance"),
   duplicatePiece: document.querySelector("#duplicatePiece"),
@@ -1405,6 +1409,45 @@ function toggleSelectedPieceLock() {
   draw();
 }
 
+function moveSelectedPieceBy(deltaX, deltaY, message) {
+  const piece = selectedPiece();
+  if (!piece) return;
+  if (piece.locked) {
+    updateImportStatus("Desbloqueie a peca antes de alinhar.");
+    return;
+  }
+  if (!deltaX && !deltaY) {
+    updateImportStatus("A peca ja esta nessa posicao.");
+    return;
+  }
+  recordHistory();
+  piece.x += deltaX;
+  piece.y += deltaY;
+  updateImportStatus(message);
+  draw();
+}
+
+function alignSelectedPiece(modeName) {
+  const piece = selectedPiece();
+  if (!piece) return;
+  const box = bounds(transformedPoints(piece));
+  const fabricWidth = Number(ui.fabricWidth.value);
+
+  if (modeName === "origin") {
+    moveSelectedPieceBy(-box.minX, -box.minY, `Peca posicionada na origem: ${piece.name}.`);
+  }
+  if (modeName === "center-width") {
+    const center = (box.minX + box.maxX) / 2;
+    moveSelectedPieceBy(fabricWidth / 2 - center, 0, `Peca centralizada na largura: ${piece.name}.`);
+  }
+  if (modeName === "left") {
+    moveSelectedPieceBy(-box.minX, 0, `Peca encostada na esquerda: ${piece.name}.`);
+  }
+  if (modeName === "top") {
+    moveSelectedPieceBy(0, -box.minY, `Peca encostada no topo: ${piece.name}.`);
+  }
+}
+
 function deleteSelectedPiece() {
   const piece = selectedPiece();
   if (!piece) return;
@@ -2065,6 +2108,10 @@ ui.mirrorPiece.addEventListener("click", () => {
   draw();
 });
 
+ui.fitPieceOrigin.addEventListener("click", () => alignSelectedPiece("origin"));
+ui.centerPieceWidth.addEventListener("click", () => alignSelectedPiece("center-width"));
+ui.alignPieceLeft.addEventListener("click", () => alignSelectedPiece("left"));
+ui.alignPieceTop.addEventListener("click", () => alignSelectedPiece("top"));
 ui.duplicatePiece.addEventListener("click", duplicateSelectedPiece);
 ui.deletePiece.addEventListener("click", deleteSelectedPiece);
 ui.toggleLockPiece.addEventListener("click", toggleSelectedPieceLock);
