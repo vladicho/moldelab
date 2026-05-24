@@ -54,6 +54,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Encaixe automatico simples
 - Encaixe usa largura fixa do tecido e aumenta o comprimento do risco conforme necessario
 - Encaixe tenta reaproveitar vazios entre pecas para aumentar o aproveitamento do tecido
+- Margem entre pecas inicia em 0 cm por padrao
 - Encaixe pode girar pecas em 180 graus sem mudar o sentido do fio
 - Mensagem do encaixe informa porcentagem de aproveitamento e comprimento usado
 - Cabecario do risco com largura, comprimento, pecas encaixadas, aproveitamento, grade, modelos e arquivo

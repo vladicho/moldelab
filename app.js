@@ -1755,7 +1755,7 @@ function restoreSnapshot(snapshot) {
   ui.projectName.value = data.projectName || "MoldeLab Projeto";
   ui.fabricType.value = data.fabric?.type || "flat";
   ui.fabricWidth.value = data.fabric?.width || 150;
-  ui.spacing.value = data.fabric?.spacing || 2;
+  ui.spacing.value = data.fabric?.spacing ?? 0;
   ui.snapToGrid.checked = Boolean(data.editor?.snapToGrid);
   ui.showGrid.checked = data.editor?.showGrid ?? true;
   ui.gridStep.value = data.editor?.gridStep || 1;
@@ -1834,7 +1834,7 @@ function openProject(file) {
       ui.projectName.value = data.projectName || "MoldeLab Projeto";
       ui.fabricType.value = data.fabric?.type || "flat";
       ui.fabricWidth.value = data.fabric?.width || 150;
-      ui.spacing.value = data.fabric?.spacing || 2;
+      ui.spacing.value = data.fabric?.spacing ?? 0;
       ui.snapToGrid.checked = Boolean(data.editor?.snapToGrid);
       ui.showGrid.checked = data.editor?.showGrid ?? true;
       ui.gridStep.value = data.editor?.gridStep || 1;
