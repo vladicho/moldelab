@@ -174,6 +174,103 @@ button span {
   white-space: nowrap;
 }
 
+.icon-action {
+  position: relative;
+  width: 38px;
+  padding: 0;
+}
+
+.icon-action > span {
+  position: absolute;
+  z-index: 20;
+  left: 50%;
+  bottom: calc(100% + 7px);
+  max-width: 220px;
+  width: max-content;
+  transform: translateX(-50%);
+  border: 1px solid #111827;
+  border-radius: 5px;
+  padding: 6px 8px;
+  background: #111827;
+  color: white;
+  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.18);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.icon-action:hover > span,
+.icon-action:focus-visible > span {
+  opacity: 1;
+}
+
+.menu-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-dropdown {
+  position: relative;
+}
+
+.menu-dropdown summary {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 11px;
+  background: white;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.menu-dropdown summary::-webkit-details-marker {
+  display: none;
+}
+
+.menu-dropdown summary::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+}
+
+.menu-dropdown summary:hover,
+.menu-dropdown[open] summary {
+  border-color: var(--accent);
+}
+
+.menu-dropdown svg,
+.menu-dropdown [data-lucide] {
+  width: 16px;
+  height: 16px;
+}
+
+.menu-list {
+  position: absolute;
+  z-index: 15;
+  top: calc(100% + 6px);
+  left: 0;
+  display: flex;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px;
+  background: white;
+  box-shadow: 0 14px 35px rgba(17, 24, 39, 0.16);
+}
+
 button:hover {
   border-color: var(--accent);
 }
@@ -274,18 +371,18 @@ button.primary:hover {
 }
 
 .tool-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .tool-row.two-actions {
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
 }
 
 .mode-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 

@@ -46,12 +46,19 @@
             Margem entre pecas
             <input id="spacing" type="number" min="0" max="10" step="0.5" value="2" />
           </label>
-          <button id="autoNest" class="primary"><i data-lucide="sparkles"></i><span>Encaixe automatico</span></button>
-          <button id="saveProject"><i data-lucide="save"></i><span>Salvar projeto</span></button>
-          <button id="exportSvg"><i data-lucide="file-code"></i><span>Exportar SVG</span></button>
-          <button id="exportDxf"><i data-lucide="file-down"></i><span>Exportar DXF</span></button>
-          <button id="exportPlt"><i data-lucide="printer"></i><span>Exportar PLT</span></button>
-          <button id="exportMiniMarker"><i data-lucide="image"></i><span>Mini risco JPG</span></button>
+          <div class="menu-bar">
+            <details class="menu-dropdown">
+              <summary><i data-lucide="folder"></i><span>Arquivo</span></summary>
+              <div class="menu-list">
+                <button id="saveProject"><i data-lucide="save"></i><span>Salvar projeto</span></button>
+                <button id="exportSvg"><i data-lucide="file-code"></i><span>Exportar SVG</span></button>
+                <button id="exportDxf"><i data-lucide="file-down"></i><span>Exportar DXF</span></button>
+                <button id="exportPlt"><i data-lucide="printer"></i><span>Exportar PLT</span></button>
+                <button id="exportMiniMarker"><i data-lucide="image"></i><span>Mini risco JPG</span></button>
+              </div>
+            </details>
+            <button id="autoNest" class="primary"><i data-lucide="sparkles"></i><span>Encaixe automatico</span></button>
+          </div>
           <div id="importStatus" class="status-line">SVG, DXF e PLT simples importaveis. ADS precisa de amostras.</div>
         </section>
 
@@ -74,9 +81,9 @@
             <button id="redoAction" title="Refazer"><i data-lucide="redo-2"></i><span>Refazer</span></button>
           </div>
           <div class="tool-row">
-            <button id="zoomOut" title="Diminuir zoom"><i data-lucide="zoom-out"></i><span>-</span></button>
-            <button id="resetView" title="Centralizar"><i data-lucide="maximize"></i><span>100%</span></button>
-            <button id="zoomIn" title="Aumentar zoom"><i data-lucide="zoom-in"></i><span>+</span></button>
+            <button id="zoomOut" title="Diminuir zoom"><i data-lucide="zoom-out"></i><span>Diminuir zoom</span></button>
+            <button id="resetView" title="Centralizar"><i data-lucide="maximize"></i><span>Centralizar 100%</span></button>
+            <button id="zoomIn" title="Aumentar zoom"><i data-lucide="zoom-in"></i><span>Aumentar zoom</span></button>
           </div>
           <label class="inline-check">
             <input id="snapToGrid" type="checkbox" />
@@ -132,9 +139,9 @@
             <input id="seamAllowance" type="number" min="0" max="8" step="0.1" value="0" />
           </label>
           <div class="tool-row">
-            <button id="rotateLeft" title="Girar 15 graus para esquerda"><i data-lucide="rotate-ccw"></i><span>-15</span></button>
-            <button id="rotateRight" title="Girar 15 graus para direita"><i data-lucide="rotate-cw"></i><span>+15</span></button>
-            <button id="mirrorPiece" title="Espelhar peca"><i data-lucide="flip-horizontal"></i><span>Flip</span></button>
+            <button id="rotateLeft" title="Girar 15 graus para esquerda"><i data-lucide="rotate-ccw"></i><span>Girar -15 graus</span></button>
+            <button id="rotateRight" title="Girar 15 graus para direita"><i data-lucide="rotate-cw"></i><span>Girar +15 graus</span></button>
+            <button id="mirrorPiece" title="Espelhar peca"><i data-lucide="flip-horizontal"></i><span>Espelhar peca</span></button>
           </div>
           <div class="tool-row two-actions">
             <button id="fitPieceOrigin"><i data-lucide="corner-up-left"></i><span>Na origem</span></button>

@@ -13,7 +13,8 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 ## Recursos atuais
 
 - Editor 2D em canvas
-- Botoes com icones para comandos principais do editor
+- Botoes compactos com icones e texto no hover/foco
+- Menu Arquivo desplegavel para salvar e exportar
 - Criacao de moldes do zero por pontos
 - Pecas vetoriais arrastaveis
 - Lista de pecas para selecao rapida

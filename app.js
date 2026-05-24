@@ -643,6 +643,11 @@ function refreshIcons() {
   if (window.lucide) {
     window.lucide.createIcons();
   }
+  document.querySelectorAll("button").forEach((button) => {
+    if (button.querySelector("svg, [data-lucide]")) {
+      button.classList.add("icon-action");
+    }
+  });
 }
 
 function pieceMetaLabel(piece) {
@@ -2323,6 +2328,12 @@ document.addEventListener("keydown", (event) => {
   event.preventDefault();
   if (isUndo) undoAction();
   if (isRedo) redoAction();
+});
+
+document.querySelectorAll(".menu-dropdown button").forEach((button) => {
+  button.addEventListener("click", () => {
+    button.closest("details")?.removeAttribute("open");
+  });
 });
 
 window.addEventListener("load", refreshIcons);
