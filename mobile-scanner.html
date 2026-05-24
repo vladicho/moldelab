@@ -45,7 +45,18 @@
       }
 
       input {
-        display: none;
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 12px;
+        background: #1e293b;
+        color: white;
+      }
+
+      .fallback {
+        display: grid;
+        gap: 8px;
       }
 
       small {
@@ -62,10 +73,10 @@
         <button id="startCamera">Abrir camera</button>
         <button id="sendFrame">Enviar frame</button>
         <button id="toggleLive">Ao vivo: off</button>
-        <label>
-          Foto fallback
-          <input id="fallbackPhoto" type="file" accept="image/*" capture="environment" />
-        </label>
+      </div>
+      <div class="fallback">
+        <label for="fallbackPhoto">Foto fallback</label>
+        <input id="fallbackPhoto" type="file" accept="image/*" capture="environment" />
       </div>
       <small id="status">Conectando ao app Windows...</small>
     </main>
@@ -109,10 +120,26 @@
         return canvas.toDataURL("image/jpeg", 0.82);
       }
 
-      function sendDataUrl(dataUrl) {
-        if (!dataUrl || socket.readyState !== WebSocket.OPEN) return;
-        socket.send(JSON.stringify({ type: "frame", dataUrl, capturedAt: Date.now() }));
-        setStatus("Frame enviado ao MoldeLab.");
+      async function sendDataUrl(dataUrl) {
+        if (!dataUrl) {
+          setStatus("Nenhuma imagem para enviar.");
+          return;
+        }
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ type: "frame", dataUrl, capturedAt: Date.now() }));
+          setStatus("Frame enviado ao MoldeLab por WebSocket.");
+          return;
+        }
+        try {
+          const response = await fetch("/scanner-frame", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "frame", dataUrl, capturedAt: Date.now() }),
+          });
+          setStatus(response.ok ? "Foto enviada ao MoldeLab por fallback HTTP." : "Falha ao enviar foto por fallback HTTP.");
+        } catch (error) {
+          setStatus("Nao consegui enviar. Confira se o app Windows esta aberto.");
+        }
       }
 
       function sendCurrentFrame() {

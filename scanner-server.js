@@ -302,6 +302,11 @@ function routeWs(socket, role, raw) {
   for (const target of targets) sendWs(target, raw);
 }
 
+function sendToDesktops(payload) {
+  const raw = typeof payload === "string" ? payload : JSON.stringify(payload);
+  for (const desktop of desktops) sendWs(desktop, raw);
+}
+
 function acceptWebSocket(request, socket, role) {
   const key = request.headers["sec-websocket-key"];
   const accept = crypto.createHash("sha1").update(`${key}258EAFA5-E914-47DA-95CA-C5AB0DC85B11`).digest("base64");
@@ -327,6 +332,26 @@ function acceptWebSocket(request, socket, role) {
 
 const server = http.createServer((request, response) => {
   const url = new URL(request.url, `http://${request.headers.host}`);
+  if (url.pathname === "/scanner-frame" && request.method === "POST") {
+    let body = "";
+    request.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > 18_000_000) request.destroy();
+    });
+    request.on("end", () => {
+      try {
+        const payload = JSON.parse(body);
+        if (!payload.dataUrl) throw new Error("missing frame");
+        sendToDesktops({ type: "frame", dataUrl: payload.dataUrl, capturedAt: payload.capturedAt || Date.now() });
+        response.writeHead(200, { "Content-Type": mimeTypes[".json"] });
+        response.end(JSON.stringify({ ok: true, desktops: desktops.size }));
+      } catch (error) {
+        response.writeHead(400, { "Content-Type": mimeTypes[".json"] });
+        response.end(JSON.stringify({ ok: false, error: error.message }));
+      }
+    });
+    return;
+  }
   if (url.pathname === "/scanner-info.json") {
     response.writeHead(200, { "Content-Type": mimeTypes[".json"] });
     response.end(JSON.stringify({ mobileUrl: mobileUrl(), qrUrl: "/scanner-qr.svg" }));

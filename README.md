@@ -130,7 +130,8 @@ o Node.js instalado ou o runtime embutido do Codex e abre o navegador
 automaticamente.
 
 Se o navegador bloquear camera em HTTP, use o fallback "Foto fallback" na pagina
-mobile ou importe uma imagem manualmente no app.
+mobile. Esse fallback envia a foto por HTTP caso o WebSocket nao esteja aberto.
+Tambem continua sendo possivel importar uma imagem manualmente no app.
 
 ## Qualidade
 
