@@ -43,6 +43,8 @@ const ui = {
   alignPieceLeft: document.querySelector("#alignPieceLeft"),
   alignPieceTop: document.querySelector("#alignPieceTop"),
   pieceName: document.querySelector("#pieceName"),
+  pieceModel: document.querySelector("#pieceModel"),
+  pieceSize: document.querySelector("#pieceSize"),
   pieceColor: document.querySelector("#pieceColor"),
   seamAllowance: document.querySelector("#seamAllowance"),
   duplicatePiece: document.querySelector("#duplicatePiece"),
@@ -85,6 +87,8 @@ const pieces = [
   {
     id: "front",
     name: "Frente corpo",
+    model: "Base feminina",
+    size: "M",
     x: 16,
     y: 18,
     rotation: 0,
@@ -104,6 +108,8 @@ const pieces = [
   {
     id: "back",
     name: "Costas corpo",
+    model: "Base feminina",
+    size: "M",
     x: 64,
     y: 20,
     rotation: 0,
@@ -123,6 +129,8 @@ const pieces = [
   {
     id: "sleeve",
     name: "Manga",
+    model: "Base feminina",
+    size: "M",
     x: 112,
     y: 28,
     rotation: 0,
@@ -140,6 +148,8 @@ const pieces = [
   {
     id: "collar",
     name: "Gola",
+    model: "Base feminina",
+    size: "M",
     x: 24,
     y: 110,
     rotation: 0,
@@ -156,6 +166,8 @@ const pieces = [
   {
     id: "waist",
     name: "Cos",
+    model: "Base feminina",
+    size: "M",
     x: 94,
     y: 118,
     rotation: 0,
@@ -599,7 +611,7 @@ function drawPiece(piece, hasCollision) {
   ctx.fillStyle = "#1d2424";
   ctx.font = "700 13px Arial";
   ctx.textAlign = "left";
-  ctx.fillText(piece.name, label[0], label[1]);
+  ctx.fillText(pieceDisplayLabel(piece), label[0], label[1]);
   drawSeamAllowance(piece, points);
   drawGrainline(piece, points);
   drawNotches(piece, points);
@@ -622,6 +634,15 @@ function safePieceColor(value) {
   return /^#[0-9a-f]{6}$/i.test(value) ? value : "#475569";
 }
 
+function pieceMetaLabel(piece) {
+  return [piece.model, piece.size].map((value) => String(value || "").trim()).filter(Boolean).join(" / ");
+}
+
+function pieceDisplayLabel(piece) {
+  const meta = pieceMetaLabel(piece);
+  return meta ? `${piece.name} - ${meta}` : piece.name;
+}
+
 function renderPieceList() {
   ui.pieceList.innerHTML = pieces
     .map((piece, index) => {
@@ -631,8 +652,9 @@ function renderPieceList() {
       const active = selectedId === piece.id ? " active" : "";
       const lockLabel = piece.locked ? " · bloqueada" : "";
       const color = safePieceColor(piece.color);
+      const label = pieceDisplayLabel(piece);
       return `<button class="piece-list-item${active}" data-piece-id="${piece.id}">
-        <span><i style="background:${color}"></i>${index + 1}. ${escapeHtml(piece.name)}</span>
+        <span><i style="background:${color}"></i>${index + 1}. ${escapeHtml(label)}</span>
         <small>${pointCount} pts · ${notchCount} piques · ${seam} cm${lockLabel}</small>
       </button>`;
     })
@@ -677,8 +699,10 @@ function updateMetrics(collisions) {
   ui.collisions.textContent = String(collisions.pairs);
 
   const piece = selectedPiece();
-  ui.selectionName.textContent = piece ? piece.name : "Nenhuma peca";
+  ui.selectionName.textContent = piece ? pieceDisplayLabel(piece) : "Nenhuma peca";
   ui.pieceName.value = piece ? piece.name : "";
+  ui.pieceModel.value = piece ? piece.model || "" : "";
+  ui.pieceSize.value = piece ? piece.size || "" : "";
   ui.pieceColor.value = piece ? safePieceColor(piece.color) : "#475569";
   ui.toggleLockPiece.textContent = piece?.locked ? "Desbloquear peca" : "Bloquear peca";
   if (document.activeElement !== ui.seamAllowance) {
@@ -889,7 +913,7 @@ function exportSvgMarkup() {
             `<line x1="${start[0].toFixed(2)}" y1="${start[1].toFixed(2)}" x2="${end[0].toFixed(2)}" y2="${end[1].toFixed(2)}" stroke="#be123c" stroke-width="0.45"/>`,
         )
         .join("");
-      return `<g><path d="${d} Z" fill="${pieceColor}22" stroke="${pieceColor}" stroke-width="0.6"><title>${escapeHtml(piece.name)}</title></path>${seam}${notches}</g>`;
+      return `<g><path d="${d} Z" fill="${pieceColor}22" stroke="${pieceColor}" stroke-width="0.6"><title>${escapeHtml(pieceDisplayLabel(piece))}</title></path>${seam}${notches}</g>`;
     })
     .join("\n  ");
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${fabricWidth}cm" height="${fabricHeight}cm" viewBox="0 0 ${fabricWidth} ${fabricHeight}">
@@ -1115,7 +1139,7 @@ function exportMiniMarker() {
     const box = bounds(points);
     out.fillStyle = "#111827";
     out.font = "700 16px Arial";
-    out.fillText(piece.name, ox + (box.minX + 1.5) * previewScale, oy + (box.minY + 5) * previewScale);
+    out.fillText(pieceDisplayLabel(piece), ox + (box.minX + 1.5) * previewScale, oy + (box.minY + 5) * previewScale);
   });
 
   output.toBlob((blob) => {
@@ -1166,6 +1190,8 @@ function projectSnapshot() {
     pieces: pieces.map((piece) => ({
       id: piece.id,
       name: piece.name,
+      model: piece.model || "",
+      size: piece.size || "",
       x: piece.x,
       y: piece.y,
       rotation: piece.rotation,
@@ -1209,6 +1235,8 @@ function restoreSnapshot(snapshot) {
     ...data.pieces.map((piece, index) => ({
       id: piece.id || `restored-${index + 1}`,
       name: piece.name || `Peca ${index + 1}`,
+      model: piece.model || "",
+      size: piece.size || "",
       x: Number(piece.x) || 0,
       y: Number(piece.y) || 0,
       rotation: Number(piece.rotation) || 0,
@@ -1285,6 +1313,8 @@ function openProject(file) {
         ...data.pieces.map((piece, index) => ({
           id: piece.id || `loaded-${index + 1}`,
           name: piece.name || `Peca ${index + 1}`,
+          model: piece.model || "",
+          size: piece.size || "",
           x: Number(piece.x) || 0,
           y: Number(piece.y) || 0,
           rotation: Number(piece.rotation) || 0,
@@ -1334,6 +1364,8 @@ function addPiece() {
   pieces.push({
     id,
     name: `Nova peca ${newPieceCount}`,
+    model: "",
+    size: "",
     x: 18 + newPieceCount * 6,
     y: 18 + newPieceCount * 6,
     rotation: 0,
@@ -1391,6 +1423,21 @@ function renameSelectedPiece() {
   if (piece.name === nextName) return;
   recordHistory();
   piece.name = nextName;
+  draw();
+}
+
+function updateSelectedPieceMeta(field, input) {
+  const piece = selectedPiece();
+  if (!piece) return;
+  if (piece.locked) {
+    updateImportStatus("Desbloqueie a peca antes de alterar modelo ou tamanho.");
+    input.value = piece[field] || "";
+    return;
+  }
+  const nextValue = input.value.trim();
+  if ((piece[field] || "") === nextValue) return;
+  recordHistory();
+  piece[field] = nextValue;
   draw();
 }
 
@@ -1665,6 +1712,8 @@ function createImportedPiece(points, name) {
   pieces.push({
     id,
     name,
+    model: "",
+    size: "",
     x: normalized.x,
     y: normalized.y,
     rotation: 0,
@@ -1904,6 +1953,8 @@ function finishTrace() {
   pieces.push({
     id,
     name: `${isDrawn ? "Desenhada" : "Digitalizada"} ${digitizedCount}`,
+    model: "",
+    size: "",
     x: box.minX,
     y: box.minY,
     rotation: 0,
@@ -2177,6 +2228,8 @@ ui.addNotch.addEventListener("click", addNotchToSelectedPoint);
 ui.deleteNotch.addEventListener("click", deleteNotchFromSelectedPoint);
 ui.deletePoint.addEventListener("click", deleteSelectedPoint);
 ui.pieceName.addEventListener("change", renameSelectedPiece);
+ui.pieceModel.addEventListener("change", () => updateSelectedPieceMeta("model", ui.pieceModel));
+ui.pieceSize.addEventListener("change", () => updateSelectedPieceMeta("size", ui.pieceSize));
 ui.pieceColor.addEventListener("change", updateSelectedPieceColor);
 ui.seamAllowance.addEventListener("input", updateSelectedSeamAllowance);
 

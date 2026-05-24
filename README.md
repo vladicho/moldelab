@@ -17,6 +17,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Pecas vetoriais arrastaveis
 - Lista de pecas para selecao rapida
 - Cores por peca para diferenciar modelos e tamanhos no encaixe
+- Modelo e tamanho por peca para organizar grades manuais
 - Bloqueio de pecas para evitar edicao ou encaixe acidental
 - Medidas tecnicas da peca selecionada
 - Alinhamento rapido da peca selecionada no tecido
