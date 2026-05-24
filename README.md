@@ -19,6 +19,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Barra de status com modo, peca selecionada, tecido, zoom e coordenadas do cursor
 - Mensagens de importacao, digitalizacao e acoes visiveis na barra de status
 - Atalhos de teclado para modos, zoom, nova peca e salvar projeto
+- Atalhos Ctrl+D para duplicar e Delete/Backspace para apagar ponto ou peca
 - Menu contextual com clique direito sobre a peca ou ponto no canvas
 - Menu contextual no canvas vazio para nova peca, encaixe, modos e zoom
 - Ajustar a tela para enquadrar todas as pecas rapidamente

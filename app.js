@@ -2557,10 +2557,24 @@ document.addEventListener("keydown", (event) => {
     saveProject();
     return;
   }
+  if ((event.ctrlKey || event.metaKey) && key === "d") {
+    event.preventDefault();
+    ui.duplicatePiece.click();
+    closeMenus();
+    return;
+  }
   if (isTyping) return;
 
   const isUndo = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && !event.shiftKey;
   const isRedo = (event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === "y" || (event.shiftKey && event.key.toLowerCase() === "z"));
+  const isDelete = event.key === "Delete" || event.key === "Backspace";
+  if (isDelete) {
+    event.preventDefault();
+    if (selectedPointIndex !== null) ui.deletePoint.click();
+    else ui.deletePiece.click();
+    closeMenus();
+    return;
+  }
   const shortcutActions = {
     m: () => ui.modeMove.click(),
     p: () => ui.modePoints.click(),
