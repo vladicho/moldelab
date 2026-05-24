@@ -1448,6 +1448,22 @@ function alignSelectedPiece(modeName) {
   }
 }
 
+function nudgeSelectedPiece(event) {
+  const directions = {
+    ArrowLeft: [-1, 0],
+    ArrowRight: [1, 0],
+    ArrowUp: [0, -1],
+    ArrowDown: [0, 1],
+  };
+  const direction = directions[event.key];
+  if (!direction) return false;
+  const target = event.target;
+  if (["INPUT", "SELECT", "TEXTAREA"].includes(target?.tagName)) return false;
+  const step = event.shiftKey ? 5 : Math.max(0.1, Number(ui.gridStep.value) || 1);
+  moveSelectedPieceBy(direction[0] * step, direction[1] * step, `Peca movida ${step} cm.`);
+  return true;
+}
+
 function deleteSelectedPiece() {
   const piece = selectedPiece();
   if (!piece) return;
@@ -2188,7 +2204,8 @@ ui.projectInput.addEventListener("change", (event) => openProject(event.target.f
 document.addEventListener("keydown", (event) => {
   const isUndo = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && !event.shiftKey;
   const isRedo = (event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === "y" || (event.shiftKey && event.key.toLowerCase() === "z"));
-  if (!isUndo && !isRedo) return;
+  const didNudge = !event.ctrlKey && !event.metaKey && nudgeSelectedPiece(event);
+  if (!isUndo && !isRedo && !didNudge) return;
   event.preventDefault();
   if (isUndo) undoAction();
   if (isRedo) redoAction();

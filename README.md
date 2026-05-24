@@ -19,6 +19,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Bloqueio de pecas para evitar edicao ou encaixe acidental
 - Medidas tecnicas da peca selecionada
 - Alinhamento rapido da peca selecionada no tecido
+- Movimento fino da peca selecionada pelo teclado
 - Renomear, duplicar e apagar pecas para grade manual
 - Edicao, insercao e remocao de pontos
 - Ajuste opcional de pontos e pecas na grade
