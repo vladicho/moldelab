@@ -1418,12 +1418,7 @@ function drawNestingPreview() {
   ctx.restore();
 }
 
-function describeNestingOrder(order, label) {
-  const names = order.slice(0, 4).map((piece) => `${piece.name}${piece.size ? ` ${piece.size}` : ""}`);
-  return `${label}: ${names.join(", ")}${order.length > names.length ? "..." : ""}`;
-}
-
-function updateNestingProgress(message) {
+function updateNestingProgress(message = "Calculando encaixe...") {
   ui.statusMessage.textContent = message;
 }
 
@@ -1433,15 +1428,11 @@ function updateNestingProgressBar(startTime, deadline) {
   ui.nestingProgressBar.value = progress;
 }
 
-function addNestingAttempt(message) {
-  updateNestingProgress(message);
-}
-
 function cancelNesting() {
   if (!nestingRunning) return;
   nestingCancelRequested = true;
   ui.cancelNest.disabled = true;
-  updateNestingProgress("Interrompendo encaixe...");
+  ui.statusMessage.textContent = "Interrompendo encaixe...";
 }
 
 async function autoNest() {
@@ -1564,11 +1555,7 @@ async function autoNest() {
     const yieldIfNeeded = async () => {
       const now = performance.now();
       if (now - lastYield < 120) return;
-      const elapsedSeconds = Math.max(0.01, (now - startTime) / 1000);
-      const previewText = nestingPreview
-        ? ` Melhor: ${nestingPreview.stats.usedLength.toFixed(1)} cm, ${nestingPreview.stats.efficiency.toFixed(1)}%.`
-        : "";
-      updateNestingProgress(`Calculando encaixe: ${attempts} tentativa(s) em ${elapsedSeconds.toFixed(1)}s.${previewText}`);
+      updateNestingProgress();
       updateNestingProgressBar(startTime, deadline);
       lastYield = now;
       draw();
@@ -1579,14 +1566,12 @@ async function autoNest() {
       if (nestingCancelRequested) break;
       if (performance.now() > deadline) break;
       const label = `Estrategia ${index + 1}`;
-      addNestingAttempt(`Testando ${describeNestingOrder(order, label)}`);
       runOrder(order, label);
       await yieldIfNeeded();
     }
     while (!nestingCancelRequested && regularPieces.length > 1 && performance.now() < deadline) {
       const order = mixedOrder();
       const label = `Mista ${attempts + 1}`;
-      addNestingAttempt(`Testando ${describeNestingOrder(order, label)}`);
       runOrder(order, label);
       await yieldIfNeeded();
     }
