@@ -54,6 +54,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Encaixe automatico simples
 - Tempo configuravel do encaixe para testar mais combinacoes antes de escolher o melhor resultado
 - Botao de encaixe mostra estado de calculo e evita clique duplo durante o processamento
+- Encaixe testa estrategias por area, largura, altura, perimetro e proporcao antes das tentativas mistas
 - Encaixe usa largura fixa do tecido e aumenta o comprimento do risco conforme necessario
 - Encaixe tenta reaproveitar vazios entre pecas para aumentar o aproveitamento do tecido
 - Margem entre pecas inicia em 0 cm por padrao

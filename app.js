@@ -1290,12 +1290,60 @@ async function autoNest() {
     const unlocked = ordered.filter((piece) => !piece.locked);
     const foldPieces = isTubular ? unlocked.filter((piece) => piece.mirrored) : [];
     const regularPieces = unlocked.filter((piece) => !(isTubular && piece.mirrored));
+    const metrics = new Map(
+      regularPieces.map((piece) => {
+        const info = placementInfo(piece);
+        const area = polygonArea(transformedPoints(piece));
+        const perimeter = polygonPerimeter(transformedPoints(piece));
+        return [
+          piece.id,
+          {
+            area,
+            perimeter,
+            width: info.width,
+            height: info.height,
+            ratio: info.width / Math.max(info.height, 0.01),
+            fill: area / Math.max(info.width * info.height, 0.01),
+          },
+        ];
+      }),
+    );
+    const metric = (piece) => metrics.get(piece.id);
+    const byMetric = (selector, direction = "desc") =>
+      [...regularPieces].sort((a, b) => {
+        const value = selector(metric(a)) - selector(metric(b));
+        return direction === "asc" ? value : -value;
+      });
+    const interleaveOrders = (first, second) => {
+      const result = [];
+      const used = new Set();
+      const add = (piece) => {
+        if (used.has(piece.id)) return;
+        used.add(piece.id);
+        result.push(piece);
+      };
+      for (let index = 0; index < Math.max(first.length, second.length); index += 1) {
+        if (first[index]) add(first[index]);
+        if (second[index]) add(second[index]);
+      }
+      return result;
+    };
+    const areaDesc = byMetric((item) => item.area);
+    const heightDesc = byMetric((item) => item.height);
+    const widthDesc = byMetric((item) => item.width);
+    const perimeterDesc = byMetric((item) => item.perimeter);
     const regularOrders = [
-      regularPieces,
-      [...regularPieces].sort((a, b) => placementInfo(b).height - placementInfo(a).height),
-      [...regularPieces].sort((a, b) => placementInfo(b).width - placementInfo(a).width),
-      [...regularPieces].sort((a, b) => polygonPerimeter(transformedPoints(b)) - polygonPerimeter(transformedPoints(a))),
-      [...regularPieces].reverse(),
+      areaDesc,
+      heightDesc,
+      widthDesc,
+      perimeterDesc,
+      byMetric((item) => item.fill),
+      byMetric((item) => item.fill, "asc"),
+      byMetric((item) => item.ratio),
+      byMetric((item) => item.ratio, "asc"),
+      interleaveOrders(widthDesc, heightDesc),
+      interleaveOrders(heightDesc, widthDesc),
+      [...areaDesc].reverse(),
     ];
     let best = null;
     let attempts = 0;
@@ -1317,6 +1365,13 @@ async function autoNest() {
       }
       return shuffled;
     };
+    const mixedOrder = () => {
+      const base = Math.random() > 0.5 ? areaDesc : widthDesc;
+      return shuffledOrder(base).sort((a, b) => {
+        const noise = (Math.random() - 0.5) * Math.max(metric(a).area, metric(b).area) * 0.35;
+        return metric(b).area + noise - metric(a).area;
+      });
+    };
     const yieldIfNeeded = async () => {
       const now = performance.now();
       if (now - lastYield < 120) return;
@@ -1332,7 +1387,7 @@ async function autoNest() {
       await yieldIfNeeded();
     }
     while (regularPieces.length > 1 && performance.now() < deadline) {
-      runOrder(shuffledOrder(regularPieces));
+      runOrder(mixedOrder());
       await yieldIfNeeded();
     }
 
