@@ -21,6 +21,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Cabecario do risco inicia oculto e pode ser mostrado pela barra de status
 - Projeto salva se o cabecario estava visivel ou oculto
 - Atalho Ctrl+H mostra ou oculta o cabecario do risco
+- Botao do cabecario indica se a acao atual e mostrar ou ocultar
 - Mensagens de importacao, digitalizacao e acoes visiveis na barra de status
 - Atalhos de teclado para modos, zoom, nova peca e salvar projeto
 - Atalhos Ctrl+D para duplicar e Delete/Backspace para apagar ponto ou peca

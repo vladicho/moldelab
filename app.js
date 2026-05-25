@@ -1185,6 +1185,7 @@ function updateMarkerHeader(stats) {
 function setMarkerHeaderVisible(visible) {
   ui.markerHeader.hidden = !visible;
   ui.toggleMarkerHeader.classList.toggle("active", visible);
+  ui.toggleMarkerHeader.querySelector("span").textContent = visible ? "Ocultar cabecalho" : "Mostrar cabecalho";
 }
 
 function updateMetrics(collisions) {
