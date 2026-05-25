@@ -71,6 +71,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Mensagem do encaixe informa comprimento final, porcentagem de aproveitamento e avisos importantes
 - Cabecario do risco com largura, comprimento, pecas encaixadas, aproveitamento, grade, modelos e arquivo
 - Cabecario mostra texto completo dos titulos e celulas no hover
+- Status do cabecario fica curto na tela e mostra o detalhe completo no hover
 - Cabecario destaca valores numericos com alinhamento visual mais estavel
 - Cabecario mostra status OK ou alerta de colisao/largura antes da exportacao
 - Exportacao PLT e mini risco marcam a linha final do encaixe e levam o cabecario fora do tecido

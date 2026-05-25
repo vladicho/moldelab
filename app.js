@@ -1156,6 +1156,7 @@ function markerHeaderData(stats = markerStats()) {
 
 function updateMarkerHeader(stats) {
   const header = Object.fromEntries(markerHeaderData(stats));
+  const statusTitle = header.Status;
   ui.headerWidth.textContent = `${Number(ui.fabricWidth.value).toFixed(0)} cm`;
   ui.headerLength.textContent = header.Comprimento;
   ui.headerPieces.textContent = header["Pecas encaixadas"];
@@ -1163,7 +1164,7 @@ function updateMarkerHeader(stats) {
   ui.headerGrade.textContent = header.Grade;
   ui.headerModels.textContent = header.Modelos;
   ui.headerFile.textContent = header.Arquivo;
-  ui.headerStatus.textContent = header.Status;
+  ui.headerStatus.textContent = header.Status === "OK" ? "OK" : "Atencao";
   [
     ui.headerWidth,
     ui.headerLength,
@@ -1174,7 +1175,7 @@ function updateMarkerHeader(stats) {
     ui.headerFile,
     ui.headerStatus,
   ].forEach((cell) => {
-    cell.title = cell.textContent;
+    cell.title = cell === ui.headerStatus ? statusTitle : cell.textContent;
   });
   ui.headerStatus.classList.toggle("warn", header.Status !== "OK");
 }
