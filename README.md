@@ -72,6 +72,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Exportacao PLT/HPGL para risco em plotter
 - Mini risco em JPG
 - Exportacoes usam o nome do projeto como nome do arquivo
+- Mensagem confirma o nome do arquivo exportado
 - Salvar e abrir projeto `.moldelab.json`
 
 ## Formatos

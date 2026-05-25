@@ -1327,7 +1327,9 @@ function exportSvgMarkup() {
 }
 
 function exportSvg() {
-  downloadFile(exportSvgMarkup(), safeProjectFilename("svg"), "image/svg+xml");
+  const filename = safeProjectFilename("svg");
+  downloadFile(exportSvgMarkup(), filename, "image/svg+xml");
+  updateImportStatus(`SVG exportado: ${filename}`);
 }
 
 function dxfPair(code, value) {
@@ -1419,7 +1421,9 @@ function exportDxfMarkup() {
 }
 
 function exportDxf() {
-  downloadFile(exportDxfMarkup(), safeProjectFilename("dxf"), "application/dxf");
+  const filename = safeProjectFilename("dxf");
+  downloadFile(exportDxfMarkup(), filename, "application/dxf");
+  updateImportStatus(`DXF exportado: ${filename}`);
 }
 
 function hpglPoint([x, y]) {
@@ -1535,7 +1539,9 @@ function safeProjectFilename(extension) {
 }
 
 function exportPlt() {
-  downloadFile(exportPltMarkup(), safeProjectFilename("plt"), "application/vnd.hp-hpgl");
+  const filename = safeProjectFilename("plt");
+  downloadFile(exportPltMarkup(), filename, "application/vnd.hp-hpgl");
+  updateImportStatus(`PLT exportado para plotter: ${filename}`);
 }
 
 function exportMiniMarker() {
@@ -1691,10 +1697,12 @@ function exportMiniMarker() {
     }
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
+    const filename = safeProjectFilename("jpg");
     link.href = url;
-    link.download = safeProjectFilename("jpg");
+    link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
+    updateImportStatus(`Mini risco JPG exportado: ${filename}`);
   }, "image/jpeg", 0.92);
 }
 
