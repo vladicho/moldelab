@@ -12,7 +12,6 @@ const ui = {
   importStatus: document.querySelector("#importStatus"),
   autoNest: document.querySelector("#autoNest"),
   cancelNest: document.querySelector("#cancelNest"),
-  nestingProgress: document.querySelector("#nestingProgress"),
   nestingProgressBar: document.querySelector("#nestingProgressBar"),
   saveProject: document.querySelector("#saveProject"),
   exportSvg: document.querySelector("#exportSvg"),
@@ -79,7 +78,6 @@ const ui = {
   pieceStats: document.querySelector("#pieceStats"),
   usedLength: document.querySelector("#usedLength"),
   efficiency: document.querySelector("#efficiency"),
-  collisions: document.querySelector("#collisions"),
   headerWidth: document.querySelector("#headerWidth"),
   headerLength: document.querySelector("#headerLength"),
   headerPieces: document.querySelector("#headerPieces"),
@@ -128,7 +126,6 @@ let latestScannerFrameId = null;
 let nestingRunning = false;
 let nestingCancelRequested = false;
 let nestingPreview = null;
-let nestingAttemptTrail = [];
 
 const pieces = [
   {
@@ -1177,7 +1174,6 @@ function updateMetrics(collisions) {
 
   ui.usedLength.textContent = `${stats.usedLength.toFixed(1)} cm`;
   ui.efficiency.textContent = `${stats.efficiency.toFixed(1)}%`;
-  ui.collisions.textContent = String(collisions.pairs);
   updateMarkerHeader(stats);
 
   const piece = selectedPiece();
@@ -1404,11 +1400,6 @@ function describeNestingOrder(order, label) {
 }
 
 function updateNestingProgress(message) {
-  const trail = nestingAttemptTrail
-    .filter((item) => item !== message)
-    .slice(-7)
-    .reverse();
-  ui.nestingProgress.textContent = [message, ...trail].join("\n");
   ui.statusMessage.textContent = message;
 }
 
@@ -1419,8 +1410,6 @@ function updateNestingProgressBar(startTime, deadline) {
 }
 
 function addNestingAttempt(message) {
-  nestingAttemptTrail.push(message);
-  if (nestingAttemptTrail.length > 24) nestingAttemptTrail = nestingAttemptTrail.slice(-24);
   updateNestingProgress(message);
 }
 
@@ -1436,7 +1425,6 @@ async function autoNest() {
   nestingRunning = true;
   nestingCancelRequested = false;
   nestingPreview = null;
-  nestingAttemptTrail = [];
   ui.autoNest.disabled = true;
   ui.cancelNest.disabled = false;
   ui.nestingProgressBar.value = 0;
