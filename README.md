@@ -23,6 +23,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Atalho Ctrl+H mostra ou oculta o cabecario do risco
 - Botao do cabecario indica se a acao atual e mostrar ou ocultar
 - Estado inicial do botao do cabecario acompanha se ele esta visivel ou oculto
+- Mostrar ou ocultar o cabecario fecha menus abertos para evitar sobreposicao
 - Mensagens de importacao, digitalizacao e acoes visiveis na barra de status
 - Atalhos de teclado para modos, zoom, nova peca e salvar projeto
 - Atalhos Ctrl+D para duplicar e Delete/Backspace para apagar ponto ou peca

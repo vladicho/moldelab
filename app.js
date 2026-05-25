@@ -3612,6 +3612,7 @@ ui.nestingTimer.addEventListener("input", () => {
   draw();
 });
 ui.toggleMarkerHeader.addEventListener("click", () => {
+  closeMenus();
   setMarkerHeaderVisible(ui.markerHeader.hidden);
   updateImportStatus(ui.markerHeader.hidden ? "Cabecalho oculto." : "Cabecalho visivel.");
 });
