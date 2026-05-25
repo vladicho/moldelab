@@ -13,6 +13,7 @@ const ui = {
   autoNest: document.querySelector("#autoNest"),
   cancelNest: document.querySelector("#cancelNest"),
   nestingProgress: document.querySelector("#nestingProgress"),
+  nestingProgressBar: document.querySelector("#nestingProgressBar"),
   saveProject: document.querySelector("#saveProject"),
   exportSvg: document.querySelector("#exportSvg"),
   exportDxf: document.querySelector("#exportDxf"),
@@ -1408,6 +1409,12 @@ function updateNestingProgress(message) {
   ui.statusMessage.textContent = message;
 }
 
+function updateNestingProgressBar(startTime, deadline) {
+  const duration = Math.max(1, deadline - startTime);
+  const progress = Math.min(100, Math.max(0, ((performance.now() - startTime) / duration) * 100));
+  ui.nestingProgressBar.value = progress;
+}
+
 function addNestingAttempt(message) {
   nestingAttemptTrail.push(message);
   if (nestingAttemptTrail.length > 24) nestingAttemptTrail = nestingAttemptTrail.slice(-24);
@@ -1429,6 +1436,7 @@ async function autoNest() {
   nestingAttemptTrail = [];
   ui.autoNest.disabled = true;
   ui.cancelNest.disabled = false;
+  ui.nestingProgressBar.value = 0;
   ui.autoNest.setAttribute("aria-busy", "true");
   const autoNestLabel = ui.autoNest.querySelector("span");
   const originalLabel = autoNestLabel?.textContent || "Encaixe automatico";
@@ -1546,6 +1554,7 @@ async function autoNest() {
         ? ` Melhor: ${nestingPreview.stats.usedLength.toFixed(1)} cm, ${nestingPreview.stats.efficiency.toFixed(1)}%.`
         : "";
       updateNestingProgress(`Calculando encaixe: ${attempts} tentativa(s) em ${elapsedSeconds.toFixed(1)}s.${previewText}`);
+      updateNestingProgressBar(startTime, deadline);
       lastYield = now;
       draw();
       await waitForNextFrame();
@@ -1585,6 +1594,7 @@ async function autoNest() {
     const finalMessage = `Encaixe automatico${interruptedText}: ${attempts} tentativa(s) em ${elapsedSeconds.toFixed(1)}s, comprimento ${stats.usedLength.toFixed(1)} cm, aproveitamento ${stats.efficiency.toFixed(1)}%${missingText}.`;
     updateImportStatus(finalMessage);
     updateNestingProgress(finalMessage);
+    ui.nestingProgressBar.value = nestingCancelRequested ? ui.nestingProgressBar.value : 100;
   } finally {
     ui.autoNest.disabled = false;
     ui.cancelNest.disabled = true;
@@ -1593,6 +1603,9 @@ async function autoNest() {
     nestingRunning = false;
     nestingCancelRequested = false;
     nestingPreview = null;
+    setTimeout(() => {
+      if (!nestingRunning) ui.nestingProgressBar.value = 0;
+    }, 900);
     draw();
   }
 }

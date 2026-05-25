@@ -526,6 +526,12 @@ button.primary:hover:not(:disabled) {
   white-space: pre-line;
 }
 
+.nesting-progress-bar {
+  width: 100%;
+  height: 12px;
+  accent-color: var(--accent);
+}
+
 .tool-row {
   display: flex;
   flex-wrap: wrap;
