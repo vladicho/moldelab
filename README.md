@@ -70,6 +70,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Encaixe pode girar pecas em 180 graus sem mudar o sentido do fio
 - Mensagem do encaixe informa comprimento final, porcentagem de aproveitamento e avisos importantes
 - Cabecario do risco com largura, comprimento, pecas encaixadas, aproveitamento, grade, modelos e arquivo
+- Cabecario mostra texto completo de grade, modelos, arquivo e status no hover
 - Cabecario mostra status OK ou alerta de colisao/largura antes da exportacao
 - Exportacao PLT e mini risco marcam a linha final do encaixe e levam o cabecario fora do tecido
 - Linha final do encaixe aparece no editor e no SVG para conferencia antes do plotter
