@@ -1485,7 +1485,6 @@ async function autoNest() {
       updateImportStatus(pieces.length ? "Nenhuma peca desbloqueada para encaixar." : "Crie ou importe pecas antes de encaixar.");
       return;
     }
-    recordHistory();
     const metrics = new Map(
       regularPieces.map((piece) => {
         const info = placementInfo(piece);
@@ -1601,15 +1600,19 @@ async function autoNest() {
       await yieldIfNeeded();
     }
 
-    if (best) {
-      pieces.forEach((piece) => {
-        const placement = best.placements.get(piece.id);
-        if (!placement) return;
-        piece.rotation = placement.rotation;
-        piece.x = placement.x;
-        piece.y = placement.y;
-      });
+    if (!best?.placements.size) {
+      updateImportStatus("Nenhuma peca coube na largura atual do tecido.");
+      return;
     }
+
+    recordHistory();
+    pieces.forEach((piece) => {
+      const placement = best.placements.get(piece.id);
+      if (!placement) return;
+      piece.rotation = placement.rotation;
+      piece.x = placement.x;
+      piece.y = placement.y;
+    });
 
     draw();
     const stats = markerStats();
