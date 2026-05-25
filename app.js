@@ -126,6 +126,7 @@ let latestScannerFrameId = null;
 let nestingRunning = false;
 let nestingCancelRequested = false;
 let nestingPreview = null;
+let lastNestingStats = null;
 
 const pieces = [
   {
@@ -278,6 +279,7 @@ function bounds(points) {
 
 function markerLength() {
   const spacing = Math.max(0, Number(ui.spacing.value) || 0);
+  if (lastNestingStats) return Math.max(minimumMarkerLength, lastNestingStats.usedLength + spacing * 2);
   const allPoints = pieces.flatMap(transformedPoints);
   if (!allPoints.length) return minimumMarkerLength;
   const box = bounds(allPoints);
@@ -304,6 +306,10 @@ function markerStats(pieceList = pieces) {
     pieceArea,
     efficiency: Math.min(100, (pieceArea / fabricArea) * 100),
   };
+}
+
+function currentMarkerStats() {
+  return lastNestingStats || markerStats();
 }
 
 function polygonPerimeter(points) {
@@ -761,7 +767,7 @@ function drawFabric() {
 }
 
 function drawMarkerEndLine() {
-  const stats = markerStats();
+  const stats = currentMarkerStats();
   if (stats.usedLength <= 0) return;
   const fabricWidth = Number(ui.fabricWidth.value);
   const [x, topY] = worldToScreen([stats.usedLength, 0]);
@@ -1202,7 +1208,7 @@ function restoreMarkerHeaderPreference(editor = {}) {
 }
 
 function updateMetrics(collisions) {
-  const stats = markerStats();
+  const stats = currentMarkerStats();
 
   updateMarkerHeader(stats);
 
@@ -1621,6 +1627,7 @@ async function autoNest() {
     });
 
     const stats = best.stats;
+    lastNestingStats = stats;
     const elapsedSeconds = Math.max(0.01, (performance.now() - startTime) / 1000);
     const missingPieces = unlocked.filter((piece) => !best.placements.has(piece.id));
     if (missingPieces.length) selectedId = missingPieces[0].id;
@@ -2161,6 +2168,7 @@ function cloneSnapshot(snapshot) {
 
 function restoreSnapshot(snapshot) {
   historySuspended = true;
+  lastNestingStats = null;
   const data = cloneSnapshot(snapshot);
   ui.projectName.value = data.projectName || "MoldeLab Projeto";
   ui.fabricType.value = data.fabric?.type || "flat";
@@ -2210,6 +2218,7 @@ function restoreSnapshot(snapshot) {
 
 function recordHistory() {
   if (historySuspended) return;
+  lastNestingStats = null;
   undoStack.push(cloneSnapshot(projectSnapshot()));
   if (undoStack.length > 80) undoStack.shift();
   redoStack = [];
