@@ -76,8 +76,6 @@ const ui = {
   grainAngle: document.querySelector("#grainAngle"),
   selectionName: document.querySelector("#selectionName"),
   pieceStats: document.querySelector("#pieceStats"),
-  usedLength: document.querySelector("#usedLength"),
-  efficiency: document.querySelector("#efficiency"),
   headerWidth: document.querySelector("#headerWidth"),
   headerLength: document.querySelector("#headerLength"),
   headerPieces: document.querySelector("#headerPieces"),
@@ -1172,8 +1170,6 @@ function updateMarkerHeader(stats) {
 function updateMetrics(collisions) {
   const stats = markerStats();
 
-  ui.usedLength.textContent = `${stats.usedLength.toFixed(1)} cm`;
-  ui.efficiency.textContent = `${stats.efficiency.toFixed(1)}%`;
   updateMarkerHeader(stats);
 
   const piece = selectedPiece();

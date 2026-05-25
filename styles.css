@@ -595,37 +595,6 @@ button.primary:hover:not(:disabled) {
   min-width: 0;
 }
 
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  color: var(--muted);
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.legend b {
-  color: var(--ink);
-  font-weight: 700;
-}
-
-.legend i {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  margin-right: 5px;
-  border-radius: 50%;
-  vertical-align: -1px;
-}
-
-.legend .ok {
-  background: var(--accent);
-}
-
-.legend .warn {
-  background: var(--danger);
-}
-
 .statusbar {
   min-height: 34px;
   border-bottom: 1px solid var(--line);
