@@ -1431,6 +1431,12 @@ function updateNestingProgressBar(startTime, deadline) {
   ui.nestingProgressBar.setAttribute("aria-valuetext", progressText);
 }
 
+function setNestingInputsLocked(locked) {
+  [ui.fabricType, ui.fabricWidth, ui.spacing, ui.nestingTimer].forEach((input) => {
+    input.disabled = locked;
+  });
+}
+
 function cancelNesting() {
   if (!nestingRunning) return;
   nestingCancelRequested = true;
@@ -1445,6 +1451,7 @@ async function autoNest() {
   nestingPreview = null;
   ui.autoNest.disabled = true;
   ui.cancelNest.disabled = false;
+  setNestingInputsLocked(true);
   ui.nestingProgressBar.hidden = false;
   ui.nestingProgressBar.value = 0;
   ui.nestingProgressBar.title = "Encaixe 0%";
@@ -1606,6 +1613,7 @@ async function autoNest() {
   } finally {
     ui.autoNest.disabled = false;
     ui.cancelNest.disabled = true;
+    setNestingInputsLocked(false);
     ui.autoNest.removeAttribute("aria-busy");
     if (autoNestLabel) autoNestLabel.textContent = originalLabel;
     nestingRunning = false;

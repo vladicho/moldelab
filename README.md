@@ -68,6 +68,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Barra de progresso mostra o tempo restante do encaixe automatico
 - Barra do encaixe fica oculta quando nao ha calculo em andamento
 - Durante o encaixe a tela evita textos de tentativa e deixa a barra/preview indicar atividade
+- Tipo/largura do tecido, margem e timer ficam travados enquanto o encaixe calcula
 - Tecla Esc interrompe o encaixe automatico quando ele esta calculando
 - Interface diferencia botao desativado de botao calculando
 - Encaixe testa estrategias por area, largura, altura, perimetro e proporcao antes das tentativas mistas
