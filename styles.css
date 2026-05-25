@@ -519,6 +519,13 @@ button.primary:hover:not(:disabled) {
   line-height: 1.35;
 }
 
+.nesting-progress {
+  min-height: 96px;
+  max-height: 180px;
+  overflow: auto;
+  white-space: pre-line;
+}
+
 .tool-row {
   display: flex;
   flex-wrap: wrap;

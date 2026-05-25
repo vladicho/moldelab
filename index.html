@@ -75,7 +75,9 @@
                   Passo da grade (cm)
                   <input id="gridStep" type="number" min="0.1" max="10" step="0.1" value="1" />
                 </label>
-                <button id="autoNest" class="primary"><i data-lucide="sparkles"></i><span>Encaixe automatico</span></button>
+                <button id="autoNest" class="primary" data-keep-menu-open="true"><i data-lucide="sparkles"></i><span>Encaixe automatico</span></button>
+                <button id="cancelNest" type="button" data-keep-menu-open="true" disabled><i data-lucide="square"></i><span>Interromper encaixe</span></button>
+                <div id="nestingProgress" class="status-line nesting-progress">Nenhum encaixe em andamento.</div>
               </div>
             </details>
             <details class="menu-dropdown">

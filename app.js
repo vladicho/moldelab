@@ -11,6 +11,8 @@ const ui = {
   vectorInput: document.querySelector("#vectorInput"),
   importStatus: document.querySelector("#importStatus"),
   autoNest: document.querySelector("#autoNest"),
+  cancelNest: document.querySelector("#cancelNest"),
+  nestingProgress: document.querySelector("#nestingProgress"),
   saveProject: document.querySelector("#saveProject"),
   exportSvg: document.querySelector("#exportSvg"),
   exportDxf: document.querySelector("#exportDxf"),
@@ -123,6 +125,9 @@ let scannerSocket = null;
 let scannerPollTimer = null;
 let latestScannerFrameId = null;
 let nestingRunning = false;
+let nestingCancelRequested = false;
+let nestingPreview = null;
+let nestingAttemptTrail = [];
 
 const pieces = [
   {
@@ -1036,6 +1041,7 @@ function setupMenuBehavior() {
 
   document.querySelectorAll(".menu-dropdown button").forEach((button) => {
     button.addEventListener("click", () => {
+      if (button.dataset.keepMenuOpen === "true") return;
       button.closest("details")?.removeAttribute("open");
     });
   });
@@ -1341,6 +1347,7 @@ function draw() {
   drawBackgroundImage();
   const collisions = collisionInfo();
   pieces.forEach((piece) => drawPiece(piece, collisions.ids.has(piece.id)));
+  drawNestingPreview();
   drawMarkerEndLine();
   drawDigitizeGuides();
   drawMeasureGuide();
@@ -1352,10 +1359,76 @@ function waitForNextFrame() {
   return new Promise((resolve) => requestAnimationFrame(resolve));
 }
 
+function previewPiecesFromResult(result) {
+  if (!result) return [];
+  return pieces
+    .map((piece) => {
+      const placement = result.placements.get(piece.id);
+      if (!placement) return null;
+      return {
+        ...piece,
+        x: placement.x,
+        y: placement.y,
+        rotation: placement.rotation,
+      };
+    })
+    .filter(Boolean);
+}
+
+function drawNestingPreview() {
+  if (!nestingPreview?.pieces?.length) return;
+  ctx.save();
+  ctx.setLineDash([7, 5]);
+  ctx.lineWidth = 2;
+  ctx.globalAlpha = 0.42;
+  nestingPreview.pieces.forEach((piece) => {
+    const points = transformedPoints(piece).map(worldToScreen);
+    ctx.beginPath();
+    points.forEach(([x, y], index) => {
+      if (index === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.fillStyle = safePieceColor(piece.color);
+    ctx.strokeStyle = "#111827";
+    ctx.fill();
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
+function describeNestingOrder(order, label) {
+  const names = order.slice(0, 4).map((piece) => `${piece.name}${piece.size ? ` ${piece.size}` : ""}`);
+  return `${label}: ${names.join(", ")}${order.length > names.length ? "..." : ""}`;
+}
+
+function updateNestingProgress(message) {
+  const trail = nestingAttemptTrail.slice(-7).reverse();
+  ui.nestingProgress.textContent = [message, ...trail].join("\n");
+  ui.statusMessage.textContent = message;
+}
+
+function addNestingAttempt(message) {
+  nestingAttemptTrail.push(message);
+  if (nestingAttemptTrail.length > 24) nestingAttemptTrail = nestingAttemptTrail.slice(-24);
+  updateNestingProgress(message);
+}
+
+function cancelNesting() {
+  if (!nestingRunning) return;
+  nestingCancelRequested = true;
+  ui.cancelNest.disabled = true;
+  updateNestingProgress("Interrompendo encaixe...");
+}
+
 async function autoNest() {
   if (nestingRunning) return;
   nestingRunning = true;
+  nestingCancelRequested = false;
+  nestingPreview = null;
+  nestingAttemptTrail = [];
   ui.autoNest.disabled = true;
+  ui.cancelNest.disabled = false;
   ui.autoNest.setAttribute("aria-busy", "true");
   const autoNestLabel = ui.autoNest.querySelector("span");
   const originalLabel = autoNestLabel?.textContent || "Encaixe automatico";
@@ -1434,13 +1507,22 @@ async function autoNest() {
     let attempts = 0;
     let lastYield = startTime;
     const clonePiece = (piece) => ({ ...piece, points: piece.points.map((point) => [...point]) });
-    const runOrder = (order) => {
+    const runOrder = (order, label) => {
       const clonedLocked = lockedPieces.map(clonePiece);
       const clonedFold = foldPieces.map(clonePiece);
       const clonedRegular = order.map(clonePiece);
       const result = runNestingPass(clonedLocked, clonedFold, clonedRegular, fabricWidth, spacing);
       attempts += 1;
-      if (!best || result.score < best.score) best = result;
+      if (!best || result.score < best.score) {
+        best = result;
+        nestingPreview = {
+          label,
+          pieces: previewPiecesFromResult(result),
+          stats: result.stats,
+          missingCount: result.missingCount,
+        };
+      }
+      return result;
     };
     const shuffledOrder = (list) => {
       const shuffled = [...list];
@@ -1461,18 +1543,28 @@ async function autoNest() {
       const now = performance.now();
       if (now - lastYield < 120) return;
       const elapsedSeconds = Math.max(0.01, (now - startTime) / 1000);
-      updateImportStatus(`Calculando encaixe: ${attempts} tentativa(s) em ${elapsedSeconds.toFixed(1)}s.`);
+      const previewText = nestingPreview
+        ? ` Melhor: ${nestingPreview.stats.usedLength.toFixed(1)} cm, ${nestingPreview.stats.efficiency.toFixed(1)}%.`
+        : "";
+      updateNestingProgress(`Calculando encaixe: ${attempts} tentativa(s) em ${elapsedSeconds.toFixed(1)}s.${previewText}`);
       lastYield = now;
+      draw();
       await waitForNextFrame();
     };
 
-    for (const order of regularOrders) {
+    for (const [index, order] of regularOrders.entries()) {
+      if (nestingCancelRequested) break;
       if (performance.now() > deadline) break;
-      runOrder(order);
+      const label = `Estrategia ${index + 1}`;
+      addNestingAttempt(`Testando ${describeNestingOrder(order, label)}`);
+      runOrder(order, label);
       await yieldIfNeeded();
     }
-    while (regularPieces.length > 1 && performance.now() < deadline) {
-      runOrder(mixedOrder());
+    while (!nestingCancelRequested && regularPieces.length > 1 && performance.now() < deadline) {
+      const order = mixedOrder();
+      const label = `Mista ${attempts + 1}`;
+      addNestingAttempt(`Testando ${describeNestingOrder(order, label)}`);
+      runOrder(order, label);
       await yieldIfNeeded();
     }
 
@@ -1494,14 +1586,19 @@ async function autoNest() {
     const lengthText = lengthDelta > 0.05 ? `, reduziu ${lengthDelta.toFixed(1)} cm` : lengthDelta < -0.05 ? `, aumentou ${Math.abs(lengthDelta).toFixed(1)} cm` : ", comprimento igual";
     const efficiencyText = Math.abs(efficiencyDelta) > 0.05 ? `, ${efficiencyDelta > 0 ? "+" : ""}${efficiencyDelta.toFixed(1)}% aproveitamento` : "";
     const missingText = best?.missingCount ? `, ${best.missingCount} peca(s) nao encaixada(s)` : "";
-    updateImportStatus(
-      `Encaixe automatico: ${attempts} tentativa(s) em ${elapsedSeconds.toFixed(1)}s, comprimento ${beforeStats.usedLength.toFixed(1)} -> ${stats.usedLength.toFixed(1)} cm${lengthText}, aproveitamento ${stats.efficiency.toFixed(1)}%${efficiencyText}${missingText}.`,
-    );
+    const interruptedText = nestingCancelRequested ? " interrompido," : "";
+    const finalMessage = `Encaixe automatico${interruptedText}: ${attempts} tentativa(s) em ${elapsedSeconds.toFixed(1)}s, comprimento ${beforeStats.usedLength.toFixed(1)} -> ${stats.usedLength.toFixed(1)} cm${lengthText}, aproveitamento ${stats.efficiency.toFixed(1)}%${efficiencyText}${missingText}.`;
+    updateImportStatus(finalMessage);
+    updateNestingProgress(finalMessage);
   } finally {
     ui.autoNest.disabled = false;
+    ui.cancelNest.disabled = true;
     ui.autoNest.removeAttribute("aria-busy");
     if (autoNestLabel) autoNestLabel.textContent = originalLabel;
     nestingRunning = false;
+    nestingCancelRequested = false;
+    nestingPreview = null;
+    draw();
   }
 }
 
@@ -3496,6 +3593,7 @@ ui.nestingTimer.addEventListener("input", () => {
   draw();
 });
 ui.autoNest.addEventListener("click", autoNest);
+ui.cancelNest.addEventListener("click", cancelNesting);
 ui.saveProject.addEventListener("click", saveProject);
 ui.exportSvg.addEventListener("click", exportSvg);
 ui.exportDxf.addEventListener("click", exportDxf);
