@@ -651,11 +651,14 @@ function runNestingPass(lockedPieces, foldPieces, regularPieces, fabricWidth, sp
       .map((piece) => [piece.id, { x: piece.x, y: piece.y, rotation: piece.rotation }]),
   );
   const stats = markerStats(candidatePieces);
+  const requestedCount = foldPieces.length + regularPieces.length;
+  const missingCount = requestedCount - placements.size;
   return {
     placements,
     stats,
     placedCount: placements.size,
-    score: stats.usedLength * 100000 - stats.efficiency * 100 + (foldPieces.length + regularPieces.length - placements.size) * 100000000,
+    missingCount,
+    score: missingCount * 1000000000000 + stats.usedLength * 100000 - stats.efficiency * 100,
   };
 }
 
@@ -1484,8 +1487,9 @@ async function autoNest() {
     draw();
     const stats = markerStats();
     const elapsedSeconds = Math.max(0.01, (performance.now() - startTime) / 1000);
+    const missingText = best?.missingCount ? `, ${best.missingCount} peca(s) nao encaixada(s)` : "";
     updateImportStatus(
-      `Encaixe automatico: ${attempts} tentativa(s) em ${elapsedSeconds.toFixed(1)}s, novo comprimento ${stats.usedLength.toFixed(1)} cm, aproveitamento ${stats.efficiency.toFixed(1)}%.`,
+      `Encaixe automatico: ${attempts} tentativa(s) em ${elapsedSeconds.toFixed(1)}s, novo comprimento ${stats.usedLength.toFixed(1)} cm, aproveitamento ${stats.efficiency.toFixed(1)}%${missingText}.`,
     );
   } finally {
     ui.autoNest.disabled = false;
