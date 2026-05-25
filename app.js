@@ -1183,9 +1183,12 @@ function updateMarkerHeader(stats) {
 }
 
 function setMarkerHeaderVisible(visible) {
+  const label = visible ? "Ocultar cabecalho" : "Mostrar cabecalho";
   ui.markerHeader.hidden = !visible;
   ui.toggleMarkerHeader.classList.toggle("active", visible);
-  ui.toggleMarkerHeader.querySelector("span").textContent = visible ? "Ocultar cabecalho" : "Mostrar cabecalho";
+  ui.toggleMarkerHeader.querySelector("span").textContent = label;
+  ui.toggleMarkerHeader.title = label;
+  ui.toggleMarkerHeader.setAttribute("aria-expanded", String(visible));
 }
 
 function updateMetrics(collisions) {
