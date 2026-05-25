@@ -52,6 +52,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Seta de fio nas pecas com angulos 0, 45, 90, 135, 180 e 360 graus
 - Espelhamento e rotacao de pecas
 - Encaixe automatico simples
+- Tempo configuravel do encaixe para testar mais combinacoes antes de escolher o melhor resultado
 - Encaixe usa largura fixa do tecido e aumenta o comprimento do risco conforme necessario
 - Encaixe tenta reaproveitar vazios entre pecas para aumentar o aproveitamento do tecido
 - Margem entre pecas inicia em 0 cm por padrao

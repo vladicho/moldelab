@@ -7,6 +7,7 @@ const ui = {
   fabricWidth: document.querySelector("#fabricWidth"),
   fabricType: document.querySelector("#fabricType"),
   spacing: document.querySelector("#spacing"),
+  nestingTimer: document.querySelector("#nestingTimer"),
   vectorInput: document.querySelector("#vectorInput"),
   importStatus: document.querySelector("#importStatus"),
   autoNest: document.querySelector("#autoNest"),
@@ -1266,6 +1267,9 @@ function autoNest() {
   recordHistory();
   const spacing = Math.max(0, Number(ui.spacing.value) || 0);
   const fabricWidth = Number(ui.fabricWidth.value);
+  const timerSeconds = Math.max(1, Math.min(60, Number(ui.nestingTimer.value) || 3));
+  const startTime = performance.now();
+  const deadline = startTime + timerSeconds * 1000;
   const isTubular = ui.fabricType.value === "tubular";
   const ordered = [...pieces].sort((a, b) => polygonArea(transformedPoints(b)) - polygonArea(transformedPoints(a)));
   const lockedPieces = pieces.filter((piece) => piece.locked);
@@ -1280,14 +1284,31 @@ function autoNest() {
     [...regularPieces].reverse(),
   ];
   let best = null;
+  let attempts = 0;
+  const clonePiece = (piece) => ({ ...piece, points: piece.points.map((point) => [...point]) });
+  const runOrder = (order) => {
+    const clonedLocked = lockedPieces.map(clonePiece);
+    const clonedFold = foldPieces.map(clonePiece);
+    const clonedRegular = order.map(clonePiece);
+    const result = runNestingPass(clonedLocked, clonedFold, clonedRegular, fabricWidth, spacing);
+    attempts += 1;
+    if (!best || result.score < best.score) best = result;
+  };
+  const shuffledOrder = (list) => {
+    const shuffled = [...list];
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+    }
+    return shuffled;
+  };
 
   regularOrders.forEach((order) => {
-    const clonedLocked = lockedPieces.map((piece) => ({ ...piece, points: piece.points.map((point) => [...point]) }));
-    const clonedFold = foldPieces.map((piece) => ({ ...piece, points: piece.points.map((point) => [...point]) }));
-    const clonedRegular = order.map((piece) => ({ ...piece, points: piece.points.map((point) => [...point]) }));
-    const result = runNestingPass(clonedLocked, clonedFold, clonedRegular, fabricWidth, spacing);
-    if (!best || result.score < best.score) best = result;
+    if (performance.now() <= deadline) runOrder(order);
   });
+  while (regularPieces.length > 1 && performance.now() < deadline) {
+    runOrder(shuffledOrder(regularPieces));
+  }
 
   if (best) {
     pieces.forEach((piece) => {
@@ -1301,8 +1322,9 @@ function autoNest() {
 
   draw();
   const stats = markerStats();
+  const elapsedSeconds = Math.max(0.01, (performance.now() - startTime) / 1000);
   updateImportStatus(
-    `Encaixe automatico: novo comprimento ${stats.usedLength.toFixed(1)} cm, aproveitamento ${stats.efficiency.toFixed(1)}%.`,
+    `Encaixe automatico: ${attempts} tentativa(s) em ${elapsedSeconds.toFixed(1)}s, novo comprimento ${stats.usedLength.toFixed(1)} cm, aproveitamento ${stats.efficiency.toFixed(1)}%.`,
   );
 }
 
@@ -1761,6 +1783,7 @@ function projectSnapshot() {
       type: ui.fabricType.value,
       width: Number(ui.fabricWidth.value),
       spacing: Number(ui.spacing.value),
+      nestingTimer: Math.max(1, Math.min(60, Number(ui.nestingTimer.value) || 3)),
       length: markerLength(),
     },
     editor: {
@@ -1813,6 +1836,7 @@ function restoreSnapshot(snapshot) {
   ui.fabricType.value = data.fabric?.type || "flat";
   ui.fabricWidth.value = data.fabric?.width || 150;
   ui.spacing.value = data.fabric?.spacing ?? 0;
+  ui.nestingTimer.value = data.fabric?.nestingTimer ?? 3;
   ui.snapToGrid.checked = Boolean(data.editor?.snapToGrid);
   ui.showGrid.checked = data.editor?.showGrid ?? true;
   ui.gridStep.value = data.editor?.gridStep || 1;
@@ -1892,6 +1916,7 @@ function openProject(file) {
       ui.fabricType.value = data.fabric?.type || "flat";
       ui.fabricWidth.value = data.fabric?.width || 150;
       ui.spacing.value = data.fabric?.spacing ?? 0;
+      ui.nestingTimer.value = data.fabric?.nestingTimer ?? 3;
       ui.snapToGrid.checked = Boolean(data.editor?.snapToGrid);
       ui.showGrid.checked = data.editor?.showGrid ?? true;
       ui.gridStep.value = data.editor?.gridStep || 1;
@@ -3286,6 +3311,10 @@ ui.fabricType.addEventListener("change", () => {
   draw();
 });
 ui.spacing.addEventListener("input", () => {
+  recordHistory();
+  draw();
+});
+ui.nestingTimer.addEventListener("input", () => {
   recordHistory();
   draw();
 });
