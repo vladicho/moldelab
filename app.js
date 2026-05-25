@@ -547,11 +547,11 @@ function applyPlacement(piece, placement, placed) {
 
 function candidateLeftEdges(piece, others, spacing) {
   const currentBox = bounds(transformedPoints(piece));
-  const values = new Set([Number(spacing.toFixed(2))]);
+  const values = new Set([Number(spacing.toFixed(2)), Number(currentBox.minX.toFixed(2))]);
   others.forEach(({ box }) => {
     if (box.maxX + spacing < currentBox.minX) values.add(Number((box.maxX + spacing).toFixed(2)));
   });
-  return [...values].filter((value) => value < currentBox.minX - 0.01).sort((a, b) => a - b);
+  return [...values].filter((value) => value <= currentBox.minX + 0.01).sort((a, b) => a - b);
 }
 
 function candidateTopEdges(piece, others, fabricWidth, spacing) {
@@ -568,25 +568,26 @@ function candidateTopEdges(piece, others, fabricWidth, spacing) {
   });
   return [...values]
     .filter((value) => value >= spacing && value + height <= fabricWidth - spacing)
-    .sort((a, b) => Math.abs(a - currentBox.minY) - Math.abs(b - currentBox.minY));
+    .sort((a, b) => a - b);
 }
 
 function compactPieceLeft(piece, allPieces, fabricWidth, spacing, allowVertical = true) {
   const others = allPieces.filter((item) => item.id !== piece.id).map(placedPieceInfo);
+  const originalBox = bounds(transformedPoints(piece));
   let best = null;
   for (const leftEdge of candidateLeftEdges(piece, others, spacing)) {
-    const topEdges = allowVertical ? candidateTopEdges(piece, others, fabricWidth, spacing) : [bounds(transformedPoints(piece)).minY];
+    const topEdges = allowVertical ? candidateTopEdges(piece, others, fabricWidth, spacing) : [originalBox.minY];
     for (const topEdge of topEdges) {
-      const currentBox = bounds(transformedPoints(piece));
+      if (Math.abs(leftEdge - originalBox.minX) < 0.01 && Math.abs(topEdge - originalBox.minY) < 0.01) continue;
       const testPiece = {
         ...piece,
-        x: piece.x + leftEdge - currentBox.minX,
-        y: piece.y + topEdge - currentBox.minY,
+        x: piece.x + leftEdge - originalBox.minX,
+        y: piece.y + topEdge - originalBox.minY,
       };
       const points = transformedPoints(testPiece);
       const box = bounds(points);
       if (!placementFits(points, box, others, fabricWidth, spacing)) continue;
-      const score = box.maxX * 100000 + box.minX * 100 + Math.abs(topEdge - currentBox.minY);
+      const score = box.maxX * 100000 + box.minX * 100 + box.minY;
       if (!best || score < best.score) best = { x: testPiece.x, y: testPiece.y, score };
     }
   }
