@@ -1164,7 +1164,16 @@ function updateMarkerHeader(stats) {
   ui.headerModels.textContent = header.Modelos;
   ui.headerFile.textContent = header.Arquivo;
   ui.headerStatus.textContent = header.Status;
-  [ui.headerGrade, ui.headerModels, ui.headerFile, ui.headerStatus].forEach((cell) => {
+  [
+    ui.headerWidth,
+    ui.headerLength,
+    ui.headerPieces,
+    ui.headerEfficiency,
+    ui.headerGrade,
+    ui.headerModels,
+    ui.headerFile,
+    ui.headerStatus,
+  ].forEach((cell) => {
     cell.title = cell.textContent;
   });
   ui.headerStatus.classList.toggle("warn", header.Status !== "OK");
