@@ -73,6 +73,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Mini risco em JPG
 - Exportacoes usam o nome do projeto como nome do arquivo
 - Mensagem confirma o nome do arquivo exportado
+- Exportacao informa aviso quando ainda existe colisao entre pecas
 - Salvar e abrir projeto `.moldelab.json`
 
 ## Formatos

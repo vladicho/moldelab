@@ -1327,9 +1327,11 @@ function exportSvgMarkup() {
 }
 
 function exportSvg() {
+  const collisions = collisionInfo();
+  if (collisions.pairs) updateImportStatus(`Aviso: exportando SVG com ${collisions.pairs} colisao(oes).`);
   const filename = safeProjectFilename("svg");
   downloadFile(exportSvgMarkup(), filename, "image/svg+xml");
-  updateImportStatus(`SVG exportado: ${filename}`);
+  updateImportStatus(`${collisions.pairs ? "SVG exportado com aviso" : "SVG exportado"}: ${filename}`);
 }
 
 function dxfPair(code, value) {
@@ -1421,9 +1423,11 @@ function exportDxfMarkup() {
 }
 
 function exportDxf() {
+  const collisions = collisionInfo();
+  if (collisions.pairs) updateImportStatus(`Aviso: exportando DXF com ${collisions.pairs} colisao(oes).`);
   const filename = safeProjectFilename("dxf");
   downloadFile(exportDxfMarkup(), filename, "application/dxf");
-  updateImportStatus(`DXF exportado: ${filename}`);
+  updateImportStatus(`${collisions.pairs ? "DXF exportado com aviso" : "DXF exportado"}: ${filename}`);
 }
 
 function hpglPoint([x, y]) {
@@ -1539,12 +1543,15 @@ function safeProjectFilename(extension) {
 }
 
 function exportPlt() {
+  const collisions = collisionInfo();
+  if (collisions.pairs) updateImportStatus(`Aviso: exportando PLT com ${collisions.pairs} colisao(oes).`);
   const filename = safeProjectFilename("plt");
   downloadFile(exportPltMarkup(), filename, "application/vnd.hp-hpgl");
-  updateImportStatus(`PLT exportado para plotter: ${filename}`);
+  updateImportStatus(`${collisions.pairs ? "PLT exportado com aviso" : "PLT exportado para plotter"}: ${filename}`);
 }
 
 function exportMiniMarker() {
+  const collisions = collisionInfo();
   const fabricWidth = Number(ui.fabricWidth.value);
   const stats = markerStats();
   const length = Math.max(markerLength(), stats.usedLength);
@@ -1702,7 +1709,7 @@ function exportMiniMarker() {
     link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
-    updateImportStatus(`Mini risco JPG exportado: ${filename}`);
+    updateImportStatus(`${collisions.pairs ? "Mini risco JPG exportado com aviso" : "Mini risco JPG exportado"}: ${filename}`);
   }, "image/jpeg", 0.92);
 }
 
