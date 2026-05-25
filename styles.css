@@ -668,6 +668,11 @@ button.primary:hover:not(:disabled) {
   font-weight: 800;
 }
 
+.marker-header .marker-number {
+  color: var(--accent-dark);
+  font-variant-numeric: tabular-nums;
+}
+
 .marker-header td.warn {
   color: var(--danger);
 }
