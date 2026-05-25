@@ -64,7 +64,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Encaixe tenta reaproveitar vazios entre pecas para aumentar o aproveitamento do tecido
 - Margem entre pecas inicia em 0 cm por padrao
 - Encaixe pode girar pecas em 180 graus sem mudar o sentido do fio
-- Mensagem do encaixe informa antes/depois do comprimento, porcentagem de aproveitamento e diferenca obtida
+- Mensagem do encaixe informa comprimento final, porcentagem de aproveitamento e avisos importantes
 - Cabecario do risco com largura, comprimento, pecas encaixadas, aproveitamento, grade, modelos e arquivo
 - Cabecario mostra status OK ou alerta de colisao/largura antes da exportacao
 - Exportacao PLT e mini risco marcam a linha final do encaixe e levam o cabecario fora do tecido
