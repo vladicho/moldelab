@@ -1191,6 +1191,10 @@ function setMarkerHeaderVisible(visible) {
   ui.toggleMarkerHeader.setAttribute("aria-expanded", String(visible));
 }
 
+function restoreMarkerHeaderPreference(editor = {}) {
+  setMarkerHeaderVisible(Boolean(editor.showMarkerHeader));
+}
+
 function updateMetrics(collisions) {
   const stats = markerStats();
 
@@ -2134,7 +2138,7 @@ function restoreSnapshot(snapshot) {
   ui.snapToGrid.checked = Boolean(data.editor?.snapToGrid);
   ui.showGrid.checked = data.editor?.showGrid ?? true;
   ui.gridStep.value = data.editor?.gridStep || 1;
-  setMarkerHeaderVisible(Boolean(data.editor?.showMarkerHeader));
+  restoreMarkerHeaderPreference(data.editor);
 
   pieces.splice(
     0,
@@ -2215,7 +2219,7 @@ function openProject(file) {
       ui.snapToGrid.checked = Boolean(data.editor?.snapToGrid);
       ui.showGrid.checked = data.editor?.showGrid ?? true;
       ui.gridStep.value = data.editor?.gridStep || 1;
-      setMarkerHeaderVisible(Boolean(data.editor?.showMarkerHeader));
+      restoreMarkerHeaderPreference(data.editor);
 
       pieces.splice(
         0,
