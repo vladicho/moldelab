@@ -1327,7 +1327,7 @@ function exportSvgMarkup() {
 }
 
 function exportSvg() {
-  downloadFile(exportSvgMarkup(), "risco-moldelab.svg", "image/svg+xml");
+  downloadFile(exportSvgMarkup(), safeProjectFilename("svg"), "image/svg+xml");
 }
 
 function dxfPair(code, value) {
@@ -1692,7 +1692,7 @@ function exportMiniMarker() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "mini-risco-moldelab.jpg";
+    link.download = safeProjectFilename("jpg");
     link.click();
     URL.revokeObjectURL(url);
   }, "image/jpeg", 0.92);
