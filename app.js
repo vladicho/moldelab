@@ -1470,7 +1470,6 @@ async function autoNest() {
   if (autoNestLabel) autoNestLabel.textContent = "Calculando";
 
   try {
-    recordHistory();
     const spacing = Math.max(0, Number(ui.spacing.value) || 0);
     const fabricWidth = Number(ui.fabricWidth.value);
     const timerSeconds = Math.max(1, Math.min(60, Number(ui.nestingTimer.value) || 3));
@@ -1482,6 +1481,11 @@ async function autoNest() {
     const unlocked = ordered.filter((piece) => !piece.locked);
     const foldPieces = isTubular ? unlocked.filter((piece) => piece.mirrored) : [];
     const regularPieces = unlocked.filter((piece) => !(isTubular && piece.mirrored));
+    if (!unlocked.length) {
+      updateImportStatus(pieces.length ? "Nenhuma peca desbloqueada para encaixar." : "Crie ou importe pecas antes de encaixar.");
+      return;
+    }
+    recordHistory();
     const metrics = new Map(
       regularPieces.map((piece) => {
         const info = placementInfo(piece);
