@@ -312,6 +312,15 @@ function currentMarkerStats() {
   return lastNestingStats || markerStats();
 }
 
+function validNestingStats(stats) {
+  if (!stats || typeof stats !== "object") return null;
+  const usedLength = Number(stats.usedLength);
+  const pieceArea = Number(stats.pieceArea);
+  const efficiency = Number(stats.efficiency);
+  if (![usedLength, pieceArea, efficiency].every(Number.isFinite)) return null;
+  return { usedLength, pieceArea, efficiency };
+}
+
 function polygonPerimeter(points) {
   let perimeter = 0;
   for (let index = 0; index < points.length; index += 1) {
@@ -2127,6 +2136,7 @@ function projectSnapshot() {
       showGrid: ui.showGrid.checked,
       gridStep: Math.max(0.1, Number(ui.gridStep.value) || 1),
       showMarkerHeader: !ui.markerHeader.hidden,
+      nestingStats: lastNestingStats,
     },
     counters: {
       newPieceCount,
@@ -2168,8 +2178,8 @@ function cloneSnapshot(snapshot) {
 
 function restoreSnapshot(snapshot) {
   historySuspended = true;
-  lastNestingStats = null;
   const data = cloneSnapshot(snapshot);
+  lastNestingStats = validNestingStats(data.editor?.nestingStats);
   ui.projectName.value = data.projectName || "MoldeLab Projeto";
   ui.fabricType.value = data.fabric?.type || "flat";
   ui.fabricWidth.value = data.fabric?.width || 150;
@@ -2218,8 +2228,8 @@ function restoreSnapshot(snapshot) {
 
 function recordHistory() {
   if (historySuspended) return;
-  lastNestingStats = null;
   undoStack.push(cloneSnapshot(projectSnapshot()));
+  lastNestingStats = null;
   if (undoStack.length > 80) undoStack.shift();
   redoStack = [];
 }

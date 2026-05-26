@@ -77,6 +77,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Comprimento e aproveitamento finais usam apenas o melhor encaixe encontrado
 - Quando alguma peca fica fora, o editor seleciona a primeira delas para ajuste
 - Linha final e cabecario seguem as metricas do ultimo encaixe aplicado
+- Projeto salvo e desfazer/refazer preservam as metricas do ultimo encaixe aplicado
 - Tecla Esc interrompe o encaixe automatico quando ele esta calculando
 - Interface diferencia botao desativado de botao calculando
 - Encaixe testa estrategias por area, largura, altura, perimetro e proporcao antes das tentativas mistas
