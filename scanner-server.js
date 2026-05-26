@@ -7,7 +7,9 @@ const path = require("path");
 const auth = require("./lib/auth");
 const scannerToken = require("./lib/scanner-token");
 
-const root = __dirname;
+const distPath = path.join(__dirname, "dist");
+const root = fs.existsSync(path.join(distPath, "index.html")) ? distPath : __dirname;
+const sourceRoot = __dirname;
 const port = Number(process.env.PORT || process.env.MOLDELAB_SCANNER_PORT || 8787);
 const desktops = new Set();
 const mobiles = new Set();
@@ -482,6 +484,16 @@ const server = http.createServer((request, response) => {
     response.end("Forbidden");
     return;
   }
+
+  if (root !== sourceRoot && ["/app.js", "/login.js", "/admin.js", "/mobile-scanner.js"].includes(requestedPath)) {
+    const sourceOnly = path.normalize(path.join(sourceRoot, requestedPath.slice(1)));
+    if (sourceOnly.startsWith(sourceRoot) && fs.existsSync(sourceOnly)) {
+      response.writeHead(404);
+      response.end("Not found");
+      return;
+    }
+  }
+
   fs.readFile(filePath, (error, content) => {
     if (response.writableEnded || response.headersSent) return;
     if (error) {
@@ -489,7 +501,14 @@ const server = http.createServer((request, response) => {
       response.end("Not found");
       return;
     }
-    response.writeHead(200, { "Content-Type": mimeTypes[path.extname(filePath).toLowerCase()] || "application/octet-stream" });
+    const ext = path.extname(filePath).toLowerCase();
+    const headers = {
+      "Content-Type": mimeTypes[ext] || "application/octet-stream",
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": ext === ".html" ? "no-store" : "public, max-age=3600",
+    };
+    if (ext === ".js") headers["Cache-Control"] = "public, max-age=86400, immutable";
+    response.writeHead(200, headers);
     response.end(content);
   });
 });

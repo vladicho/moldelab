@@ -17,3 +17,6 @@ samples/
 
 # Dados locais (usuarios, sessoes)
 data/
+
+# Build de producao (JS minificado)
+dist/

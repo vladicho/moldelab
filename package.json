@@ -7,10 +7,12 @@
     "node": ">=18"
   },
   "scripts": {
+    "build": "node scripts/build-frontend.js",
     "start": "node scanner-server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "esbuild": "^0.25.8",
     "jsonwebtoken": "^9.0.2"
   }
 }
