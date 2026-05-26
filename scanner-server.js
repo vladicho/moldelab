@@ -415,14 +415,6 @@ const server = http.createServer((request, response) => {
     return;
   }
 
-  if (requestedPath === "/admin.html") {
-    const sessionUser = auth.getSessionUser(request);
-    if (!auth.isAdmin(sessionUser)) {
-      auth.redirectToLogin(response, "/admin.html");
-      return;
-    }
-  }
-
   if (!auth.isPublicPath(requestedPath) && !auth.getApprovedUser(request)) {
     response.writeHead(401, { "Content-Type": "text/plain; charset=utf-8" });
     response.end("Autenticacao necessaria.");
@@ -467,7 +459,12 @@ server.on("error", (error) => {
   console.error("Nao foi possivel iniciar o servidor local:", error.message);
 });
 
-auth.init();
+try {
+  auth.init();
+} catch (error) {
+  console.error("Servidor abortado:", error.message);
+  process.exit(1);
+}
 
 server.listen(port, "0.0.0.0", () => {
   const localUrl = `http://localhost:${port}`;

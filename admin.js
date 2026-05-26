@@ -62,8 +62,8 @@ async function updateUser(userId, action) {
 async function loadUsers() {
   const meResponse = await fetch("/api/auth/me", { credentials: "same-origin" });
   const meData = await meResponse.json().catch(() => ({}));
-  if (!meResponse.ok || meData.user?.role !== "admin") {
-    window.location.href = "/login.html";
+  if (!meResponse.ok || meData.user?.role !== "admin" || meData.user?.status !== "approved") {
+    window.location.href = "/login.html?next=/admin.html";
     return;
   }
 
