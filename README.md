@@ -87,10 +87,11 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Tecla Esc interrompe o encaixe automatico quando ele esta calculando
 - Interface diferencia botao desativado de botao calculando
 - Encaixe testa estrategias por area, largura, altura, perimetro e proporcao antes das tentativas mistas
+- Pontuacao do nesting prioriza aproveitamento de area, usando comprimento so como desempate
 - Encaixe faz compactacao final empurrando pecas para a esquerda quando ha espaco livre
 - Compactacao pode ajustar pecas para cima/baixo mesmo sem mover no comprimento, mantendo pecas de dobra no tecido tubular presas a dobra
 - Busca do encaixe tenta preencher vazios antes e acima de pecas ja posicionadas
-- Escolha do melhor encaixe prioriza nao deixar pecas fora antes de comparar comprimento e aproveitamento
+- Escolha do melhor encaixe prioriza nao deixar pecas fora e depois compara aproveitamento de area
 - Encaixe usa largura fixa do tecido e aumenta o comprimento do risco conforme necessario
 - Encaixe tenta reaproveitar vazios entre pecas para aumentar o aproveitamento do tecido
 - Margem entre pecas inicia em 0 cm por padrao

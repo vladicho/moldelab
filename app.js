@@ -724,12 +724,13 @@ function runNestingPass(lockedPieces, foldPieces, regularPieces, fabricWidth, sp
   const stats = markerStats(candidatePieces);
   const requestedCount = foldPieces.length + regularPieces.length;
   const missingCount = requestedCount - placements.size;
+  const areaWaste = Math.max(0, fabricWidth * Math.max(stats.usedLength, 1) - stats.pieceArea);
   return {
     placements,
     stats,
     placedCount: placements.size,
     missingCount,
-    score: missingCount * 1000000000000 + stats.usedLength * 100000 - stats.efficiency * 100,
+    score: missingCount * 1000000000000 + areaWaste * 1000 + stats.usedLength,
   };
 }
 
