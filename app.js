@@ -551,7 +551,8 @@ function candidateCoordinates(placed, spacing, startX = spacing, fixedY = null, 
 
 function grainSafeRotations(piece) {
   const grain = Number(piece.grainAngle || 0) % 360;
-  return [...new Set([grain, (grain + 180) % 360])];
+  const opposite = (grain + 180) % 360;
+  return piece.nestingRotationBias === 180 ? [...new Set([opposite, grain])] : [...new Set([grain, opposite])];
 }
 
 function findBestPlacement(piece, placed, fabricWidth, spacing, options = {}) {
@@ -1618,6 +1619,11 @@ async function autoNest() {
       }
       return result;
     };
+    const withRotationBias = (order, shouldRotate) =>
+      order.map((piece, index) => ({
+        ...piece,
+        nestingRotationBias: shouldRotate(piece, index) ? 180 : 0,
+      }));
     const areaDesc = byMetric((item) => item.area);
     const heightDesc = byMetric((item) => item.height);
     const widthDesc = byMetric((item) => item.width);
@@ -1634,6 +1640,12 @@ async function autoNest() {
       interleaveOrders(widthDesc, heightDesc),
       interleaveOrders(heightDesc, widthDesc),
       [...areaDesc].reverse(),
+      withRotationBias(areaDesc, (_piece, index) => index % 2 === 1),
+      withRotationBias(areaDesc, (_piece, index) => index % 2 === 0),
+      withRotationBias(widthDesc, (_piece, index) => index % 2 === 1),
+      withRotationBias(widthDesc, (_piece, index) => index % 2 === 0),
+      withRotationBias(heightDesc, (_piece, index) => index % 2 === 1),
+      withRotationBias(heightDesc, (_piece, index) => index % 2 === 0),
     ];
     let best = null;
     let attempts = 0;
@@ -1666,7 +1678,10 @@ async function autoNest() {
     };
     const mixedOrder = () => {
       const base = Math.random() > 0.5 ? areaDesc : widthDesc;
-      return shuffledOrder(base).sort((a, b) => {
+      return shuffledOrder(base).map((piece, index) => ({
+        ...piece,
+        nestingRotationBias: Math.random() > 0.55 || index % 2 === 1 ? 180 : 0,
+      })).sort((a, b) => {
         const noise = (Math.random() - 0.5) * Math.max(metric(a).area, metric(b).area) * 0.35;
         return metric(b).area + noise - metric(a).area;
       });
