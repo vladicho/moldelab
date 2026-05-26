@@ -8,7 +8,15 @@ const auth = require("./lib/auth");
 const scannerToken = require("./lib/scanner-token");
 
 const distPath = path.join(__dirname, "dist");
-const root = fs.existsSync(path.join(distPath, "index.html")) ? distPath : __dirname;
+const distReady = fs.existsSync(path.join(distPath, "index.html"));
+const isProductionHost = Boolean(process.env.RENDER) || process.env.NODE_ENV === "production";
+
+if (isProductionHost && !distReady) {
+  console.error("ERRO: pasta dist/ ausente. O build de producao (npm run build) precisa rodar no deploy.");
+  process.exit(1);
+}
+
+const root = distReady ? distPath : __dirname;
 const sourceRoot = __dirname;
 const port = Number(process.env.PORT || process.env.MOLDELAB_SCANNER_PORT || 8787);
 const desktops = new Set();
@@ -404,6 +412,25 @@ const server = http.createServer((request, response) => {
   const url = new URL(request.url, `http://${request.headers.host}`);
   if (auth.handleAuthApi(request, response, url)) return;
 
+  if (url.pathname === "/api/health.json" && request.method === "GET") {
+    response.writeHead(200, { "Content-Type": mimeTypes[".json"], "Cache-Control": "no-store" });
+    let build = null;
+    try {
+      build = JSON.parse(fs.readFileSync(path.join(root, "build.json"), "utf8"));
+    } catch {
+      build = { builtAt: null, commit: null };
+    }
+    response.end(
+      JSON.stringify({
+        ok: true,
+        frontend: distReady ? "dist" : "source",
+        production: isProductionHost,
+        build,
+      }),
+    );
+    return;
+  }
+
   if (url.pathname === "/scanner-frame" && request.method === "POST") {
     const scannerUserId = resolveScannerUserId(request, url);
     if (!scannerUserId) {
@@ -555,6 +582,7 @@ try {
 server.listen(port, "0.0.0.0", () => {
   const localUrl = `http://localhost:${port}`;
   console.log(`MoldeLab: ${process.env.RENDER_EXTERNAL_URL || localUrl}`);
+  console.log(`Frontend: ${distReady ? "dist (minificado)" : "source (desenvolvimento)"}`);
   console.log(`Scanner mobile: ${mobileUrl()}`);
   console.log("Abra o MoldeLab pelo endereco local e leia o QR Code pelo celular.");
   if (process.env.MOLDELAB_OPEN_BROWSER === "1") {

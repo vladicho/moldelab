@@ -28,7 +28,19 @@ async function build() {
     fs.copyFileSync(path.join(root, file), path.join(dist, file));
   }
 
-  console.log(`Frontend de producao gerado em ${dist}`);
+  const buildInfo = {
+    builtAt: new Date().toISOString(),
+    commit: process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || "local",
+  };
+  fs.writeFileSync(path.join(dist, "build.json"), JSON.stringify(buildInfo));
+
+  const loginSize = fs.statSync(path.join(dist, "login.js")).size;
+  const appSize = fs.statSync(path.join(dist, "app.js")).size;
+  const sourceLoginSize = fs.statSync(path.join(root, "login.js")).size;
+  if (loginSize >= sourceLoginSize * 0.9) {
+    throw new Error("Build nao minificou login.js como esperado.");
+  }
+  console.log(`Frontend de producao gerado em ${dist} (app.js ${appSize} bytes, login.js ${loginSize} bytes)`);
 }
 
 build().catch((error) => {
