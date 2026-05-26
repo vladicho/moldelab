@@ -380,6 +380,7 @@ const server = http.createServer((request, response) => {
       if (body.length > 18_000_000) request.destroy();
     });
     request.on("end", () => {
+      if (response.writableEnded || response.headersSent) return;
       try {
         const payload = JSON.parse(body);
         if (!payload.dataUrl) throw new Error("missing frame");
@@ -427,6 +428,7 @@ const server = http.createServer((request, response) => {
     return;
   }
   fs.readFile(filePath, (error, content) => {
+    if (response.writableEnded || response.headersSent) return;
     if (error) {
       response.writeHead(404);
       response.end("Not found");
