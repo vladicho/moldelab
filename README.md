@@ -79,6 +79,7 @@ arquivos locais, impressoras, plotters e motores nativos de geometria.
 - Linha final e cabecario seguem as metricas do ultimo encaixe aplicado
 - Projeto salvo e desfazer/refazer preservam as metricas do ultimo encaixe aplicado
 - Exportacoes SVG, DXF, PLT e mini risco usam as metricas do encaixe aplicado
+- Exportacoes e avisos consideram so as pecas do ultimo encaixe aplicado quando houver encaixe parcial
 - Tecla Esc interrompe o encaixe automatico quando ele esta calculando
 - Interface diferencia botao desativado de botao calculando
 - Encaixe testa estrategias por area, largura, altura, perimetro e proporcao antes das tentativas mistas

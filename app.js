@@ -127,6 +127,7 @@ let nestingRunning = false;
 let nestingCancelRequested = false;
 let nestingPreview = null;
 let lastNestingStats = null;
+let lastNestingPlacedIds = null;
 
 const pieces = [
   {
@@ -312,6 +313,12 @@ function currentMarkerStats() {
   return lastNestingStats || markerStats();
 }
 
+function currentMarkerPieces() {
+  if (!lastNestingPlacedIds) return pieces;
+  const placedIds = new Set(lastNestingPlacedIds);
+  return pieces.filter((piece) => placedIds.has(piece.id));
+}
+
 function validNestingStats(stats) {
   if (!stats || typeof stats !== "object") return null;
   const usedLength = Number(stats.usedLength);
@@ -319,6 +326,13 @@ function validNestingStats(stats) {
   const efficiency = Number(stats.efficiency);
   if (![usedLength, pieceArea, efficiency].every(Number.isFinite)) return null;
   return { usedLength, pieceArea, efficiency };
+}
+
+function validPlacedIds(ids) {
+  if (!Array.isArray(ids)) return null;
+  const existingIds = new Set(pieces.map((piece) => piece.id));
+  const placedIds = ids.map(String).filter((id) => existingIds.has(id));
+  return placedIds.length ? placedIds : null;
 }
 
 function polygonPerimeter(points) {
@@ -439,14 +453,14 @@ function edgeAt(screenPoint) {
   return null;
 }
 
-function collisionInfo() {
+function collisionInfo(pieceList = pieces) {
   const collisions = new Set();
   let pairs = 0;
-  for (let i = 0; i < pieces.length; i += 1) {
-    for (let j = i + 1; j < pieces.length; j += 1) {
-      if (polygonsOverlap(transformedPoints(pieces[i]), transformedPoints(pieces[j]))) {
-        collisions.add(pieces[i].id);
-        collisions.add(pieces[j].id);
+  for (let i = 0; i < pieceList.length; i += 1) {
+    for (let j = i + 1; j < pieceList.length; j += 1) {
+      if (polygonsOverlap(transformedPoints(pieceList[i]), transformedPoints(pieceList[j]))) {
+        collisions.add(pieceList[i].id);
+        collisions.add(pieceList[j].id);
         pairs += 1;
       }
     }
@@ -454,10 +468,10 @@ function collisionInfo() {
   return { ids: collisions, pairs };
 }
 
-function markerIssueInfo() {
-  const collisions = collisionInfo();
+function markerIssueInfo(pieceList = currentMarkerPieces()) {
+  const collisions = collisionInfo(pieceList);
   const fabricWidth = Number(ui.fabricWidth.value);
-  const outsideWidth = pieces.filter((piece) => {
+  const outsideWidth = pieceList.filter((piece) => {
     const box = bounds(transformedPoints(piece));
     return box.minY < 0 || box.maxY > fabricWidth;
   });
@@ -1162,13 +1176,14 @@ function fitHeaderText(values, fallback = "-") {
 }
 
 function markerHeaderData(stats = markerStats()) {
-  const grade = uniqueFilled(pieces.map((piece) => piece.size));
-  const models = uniqueFilled(pieces.map((piece) => piece.model || piece.name));
-  const issues = markerIssueInfo();
+  const markerPieces = currentMarkerPieces();
+  const grade = uniqueFilled(markerPieces.map((piece) => piece.size));
+  const models = uniqueFilled(markerPieces.map((piece) => piece.model || piece.name));
+  const issues = markerIssueInfo(markerPieces);
   return [
     ["Largura", `${Number(ui.fabricWidth.value).toFixed(0)} cm`],
     ["Comprimento", `${stats.usedLength.toFixed(1)} cm`],
-    ["Pecas encaixadas", String(pieces.length)],
+    ["Pecas encaixadas", String(markerPieces.length)],
     ["Aproveitamento", `${stats.efficiency.toFixed(1)}%`],
     ["Grade", fitHeaderText(grade)],
     ["Modelos", fitHeaderText(models)],
@@ -1637,6 +1652,7 @@ async function autoNest() {
 
     const stats = best.stats;
     lastNestingStats = stats;
+    lastNestingPlacedIds = [...best.placements.keys()];
     const elapsedSeconds = Math.max(0.01, (performance.now() - startTime) / 1000);
     const missingPieces = unlocked.filter((piece) => !best.placements.has(piece.id));
     if (missingPieces.length) selectedId = missingPieces[0].id;
@@ -1678,12 +1694,13 @@ function exportSvgMarkup() {
   const length = markerLength();
   const stats = currentMarkerStats();
   const headerRows = markerHeaderData(stats);
+  const markerPieces = currentMarkerPieces();
   const headerY = fabricWidth + 6;
   const headerWidth = Math.max(120, length);
   const rowHeight = 5;
   const labelColumnWidth = 30;
   const svgHeight = headerY + headerRows.length * rowHeight + 4;
-  const paths = pieces
+  const paths = markerPieces
     .map((piece) => {
       const points = transformedPoints(piece);
       const pieceColor = safePieceColor(piece.color);
@@ -1759,6 +1776,7 @@ function dxfText(text, point, height, layer) {
 
 function exportDxfMarkup() {
   const stats = currentMarkerStats();
+  const markerPieces = currentMarkerPieces();
   const fabricWidth = Number(ui.fabricWidth.value);
   const headerRows = markerHeaderData(stats);
   const headerY = fabricWidth + 6;
@@ -1775,7 +1793,7 @@ function exportDxfMarkup() {
     dxfPair(2, "ENTITIES"),
   ];
 
-  pieces.forEach((piece) => {
+  markerPieces.forEach((piece) => {
     const points = transformedPoints(piece);
     if (points.length < 3) return;
     lines.push(...dxfPolyline(points, "MOLDE_CONTORNO", true));
@@ -1851,9 +1869,10 @@ function pieceGrainlinePoints(piece, points) {
 function exportPltMarkup() {
   const commands = ["IN;", "SP1;", "VS20;"];
   const stats = currentMarkerStats();
+  const markerPieces = currentMarkerPieces();
   const fabricWidth = Number(ui.fabricWidth.value);
 
-  pieces.forEach((piece) => {
+  markerPieces.forEach((piece) => {
     const points = transformedPoints(piece);
     if (points.length < 2) return;
     const [startX, startY] = hpglPoint(points[0]);
@@ -1950,6 +1969,7 @@ function exportMiniMarker() {
   const issues = markerIssueInfo();
   const fabricWidth = Number(ui.fabricWidth.value);
   const stats = currentMarkerStats();
+  const markerPieces = currentMarkerPieces();
   const length = Math.max(markerLength(), stats.usedLength);
   const previewWidth = 1600;
   const margin = 48;
@@ -2027,7 +2047,7 @@ function exportMiniMarker() {
     out.stroke();
   }
 
-  pieces.forEach((piece) => {
+  markerPieces.forEach((piece) => {
     const points = transformedPoints(piece);
     const pieceColor = safePieceColor(piece.color);
     out.beginPath();
@@ -2137,6 +2157,7 @@ function projectSnapshot() {
       gridStep: Math.max(0.1, Number(ui.gridStep.value) || 1),
       showMarkerHeader: !ui.markerHeader.hidden,
       nestingStats: lastNestingStats,
+      nestingPlacedIds: lastNestingPlacedIds,
     },
     counters: {
       newPieceCount,
@@ -2179,7 +2200,8 @@ function cloneSnapshot(snapshot) {
 function restoreSnapshot(snapshot) {
   historySuspended = true;
   const data = cloneSnapshot(snapshot);
-  lastNestingStats = validNestingStats(data.editor?.nestingStats);
+  lastNestingStats = null;
+  lastNestingPlacedIds = null;
   ui.projectName.value = data.projectName || "MoldeLab Projeto";
   ui.fabricType.value = data.fabric?.type || "flat";
   ui.fabricWidth.value = data.fabric?.width || 150;
@@ -2219,6 +2241,9 @@ function restoreSnapshot(snapshot) {
   digitizedCount = data.counters?.digitizedCount || 1;
   importedCount = data.counters?.importedCount || 1;
   selectedId = pieces.some((piece) => piece.id === data.selectedId) ? data.selectedId : pieces[0]?.id || null;
+  lastNestingStats = validNestingStats(data.editor?.nestingStats);
+  lastNestingPlacedIds = lastNestingStats ? validPlacedIds(data.editor?.nestingPlacedIds) : null;
+  if (!lastNestingPlacedIds) lastNestingStats = null;
   selectedPointIndex = null;
   contourPoints = [];
   calibrationPoints = [];
@@ -2230,6 +2255,7 @@ function recordHistory() {
   if (historySuspended) return;
   undoStack.push(cloneSnapshot(projectSnapshot()));
   lastNestingStats = null;
+  lastNestingPlacedIds = null;
   if (undoStack.length > 80) undoStack.shift();
   redoStack = [];
 }
@@ -2301,6 +2327,9 @@ function openProject(file) {
       digitizedCount = data.counters?.digitizedCount || 1;
       importedCount = data.counters?.importedCount || 1;
       selectedId = pieces[0]?.id || null;
+      lastNestingStats = validNestingStats(data.editor?.nestingStats);
+      lastNestingPlacedIds = lastNestingStats ? validPlacedIds(data.editor?.nestingPlacedIds) : null;
+      if (!lastNestingPlacedIds) lastNestingStats = null;
       contourPoints = [];
       calibrationPoints = [];
       measurePoints = [];
