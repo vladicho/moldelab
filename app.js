@@ -3659,7 +3659,7 @@ ui.toggleLockPiece.addEventListener("click", toggleSelectedPieceLock);
 ui.addNotch.addEventListener("click", addNotchToSelectedPoint);
 ui.deleteNotch.addEventListener("click", deleteNotchFromSelectedPoint);
 ui.deletePoint.addEventListener("click", deleteSelectedPoint);
-ui.projectName.addEventListener("input", () => updateMarkerHeader(markerStats()));
+ui.projectName.addEventListener("input", () => updateMarkerHeader(currentMarkerStats()));
 ui.pieceName.addEventListener("change", renameSelectedPiece);
 ui.pieceModel.addEventListener("change", () => updateSelectedPieceMeta("model", ui.pieceModel));
 ui.pieceSize.addEventListener("change", () => updateSelectedPieceMeta("size", ui.pieceSize));
