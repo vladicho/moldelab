@@ -1676,7 +1676,7 @@ async function autoNest() {
 function exportSvgMarkup() {
   const fabricWidth = Number(ui.fabricWidth.value);
   const length = markerLength();
-  const stats = markerStats();
+  const stats = currentMarkerStats();
   const headerRows = markerHeaderData(stats);
   const headerY = fabricWidth + 6;
   const headerWidth = Math.max(120, length);
@@ -1758,7 +1758,7 @@ function dxfText(text, point, height, layer) {
 }
 
 function exportDxfMarkup() {
-  const stats = markerStats();
+  const stats = currentMarkerStats();
   const fabricWidth = Number(ui.fabricWidth.value);
   const headerRows = markerHeaderData(stats);
   const headerY = fabricWidth + 6;
@@ -1850,7 +1850,7 @@ function pieceGrainlinePoints(piece, points) {
 
 function exportPltMarkup() {
   const commands = ["IN;", "SP1;", "VS20;"];
-  const stats = markerStats();
+  const stats = currentMarkerStats();
   const fabricWidth = Number(ui.fabricWidth.value);
 
   pieces.forEach((piece) => {
@@ -1949,7 +1949,7 @@ function exportPlt() {
 function exportMiniMarker() {
   const issues = markerIssueInfo();
   const fabricWidth = Number(ui.fabricWidth.value);
-  const stats = markerStats();
+  const stats = currentMarkerStats();
   const length = Math.max(markerLength(), stats.usedLength);
   const previewWidth = 1600;
   const margin = 48;
